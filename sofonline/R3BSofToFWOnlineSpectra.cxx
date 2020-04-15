@@ -11,6 +11,7 @@
 #include "R3BEventHeader.h"
 #include "R3BSofMwpcCalData.h"
 #include "R3BSofSciSingleTcalData.h"
+#include "R3BSofSciTcalData.h"
 #include "R3BSofToFWMappedData.h"
 #include "R3BSofToFWTcalData.h"
 #include "R3BSofTwimHitData.h"
@@ -45,6 +46,8 @@ R3BSofToFWOnlineSpectra::R3BSofToFWOnlineSpectra()
     , fTcalItemsToFW(NULL)
     , fHitItemsTwim(NULL)
     , fCalItemsMwpc(NULL)
+    , fTcalItemsSci(NULL)
+    , fSingleTcalItemsSci(NULL)
     , fTwimTofRangeMax(-65.)
     , fTwimTofRangeMin(-87.)
     , fNEvents(0)
@@ -56,6 +59,8 @@ R3BSofToFWOnlineSpectra::R3BSofToFWOnlineSpectra(const char* name, Int_t iVerbos
     , fMappedItemsToFW(NULL)
     , fTcalItemsToFW(NULL)
     , fHitItemsTwim(NULL)
+    , fTcalItemsSci(NULL)
+    , fSingleTcalItemsSci(NULL)
     , fCalItemsMwpc(NULL)
     , fTwimTofRangeMax(-65.)
     , fTwimTofRangeMin(-87.)
@@ -74,6 +79,12 @@ R3BSofToFWOnlineSpectra::~R3BSofToFWOnlineSpectra()
         delete fHitItemsTwim;
     if (fCalItemsMwpc)
         delete fCalItemsMwpc;
+    if (fTcalItemsSci)
+        delete fTcalItemsSci;
+    if (fSingleTcalItemsSci)
+        delete fSingleTcalItemsSci;
+
+
 }
 
 InitStatus R3BSofToFWOnlineSpectra::Init()
@@ -118,6 +129,15 @@ InitStatus R3BSofToFWOnlineSpectra::Init()
     {
         return kFATAL;
     }
+    // --- ----------------------------------------- --- //
+    // --- get access to tcal data of the SCI --- //
+    // --- ----------------------------------------- --- //
+    fTcalItemsSci = (TClonesArray*)mgr->GetObject("SofSciTcalData");
+    if (!fTcalItemsSci)
+    {
+        return kFATAL;
+    }
+
 
     // get access to hit data of the TWIM
     fHitItemsTwim = (TClonesArray*)mgr->GetObject("TwimHitData");
@@ -235,7 +255,7 @@ InitStatus R3BSofToFWOnlineSpectra::Init()
         cTwimvsTof[i] = new TCanvas(Name1, Name1, 10, 10, 1000, 900);
         sprintf(Name1, "fh2_Twim_vs_ToF_Plastic_%i", i + 1);
         sprintf(Name2, "Twim vs ToF for plastic %i", i + 1);
-        fh2_Twim_Tof[i] = new TH2F(Name1, Name2, 7000, fTwimTofRangeMin, fTwimTofRangeMax, 1000, 0, 40);
+        fh2_Twim_Tof[i] = new TH2F(Name1, Name2, 1000,-80,-70, 3000, 10, 40);
         fh2_Twim_Tof[i]->GetXaxis()->SetTitle("Raw time-of-flight [ns with one bin/ps]");
         fh2_Twim_Tof[i]->GetYaxis()->SetTitle("Charge Z");
         fh2_Twim_Tof[i]->GetXaxis()->CenterTitle(true);
@@ -369,6 +389,12 @@ void R3BSofToFWOnlineSpectra::Exec(Option_t* option)
     UShort_t iCh;  // 0-based
     Double_t iRawTimeNs[NbDets * 2];
     UShort_t mult[NbDets * NbChs];
+    Int_t nHitsSci;
+    UShort_t iDetSci; // 0-bsed
+    UShort_t iChSci;  // 0-based
+    Double_t iRawTimeNsSci[NbDetsSci * 3];
+    UShort_t multSci[NbDetsSci * 3];
+
 
     // --- -------------- --- //
     // --- initialisation --- //
@@ -380,6 +406,14 @@ void R3BSofToFWOnlineSpectra::Exec(Option_t* option)
             mult[i * NbChs + j] = 0;
         }
     }
+    for (UShort_t i = 0; i < NbDetsSci; i++)
+    {
+        for (UShort_t j = 0; j < 3; j++)
+        {
+            multSci[i * 3 + j] = 0;
+        }
+    }
+
 
     if (fMappedItemsToFW && fMappedItemsToFW->GetEntriesFast() && fTcalItemsToFW && fTcalItemsToFW->GetEntriesFast())
     {
@@ -416,20 +450,43 @@ void R3BSofToFWOnlineSpectra::Exec(Option_t* option)
             iRawTimeNs[iDet * 2 + iCh] = hittcal->GetRawTimeNs();
             ;
         }
+        
+	// --- ------------------- --- //
+        // --- loop over tcal data --- //
+        // --- ------------------- --- //
+        nHitsSci = fTcalItemsSci->GetEntriesFast();
+        for (Int_t ihit = 0; ihit < nHitsSci; ihit++)
+        {
+            R3BSofSciTcalData* hittcalsci = (R3BSofSciTcalData*)fTcalItemsSci->At(ihit);
+            if (!hittcalsci)
+                continue;
+            iDetSci = hittcalsci->GetDetector() - 1;
+            iChSci = hittcalsci->GetPmt() - 1;
+            iRawTimeNsSci[iDetSci * 3 + iChSci] = hittcalsci->GetRawTimeNs();
+            multSci[iDetSci*3 + iChSci]++;
+        }
+
 
         // --- ----------------------------------- --- //
         // --- Get the Time at the Start detectors --- //
         // --- ----------------------------------- --- //
         Double_t TrawStart = -1000000.;
-        if (fSingleTcalItemsSci && (fSingleTcalItemsSci->GetEntriesFast() == 1))
+	if(multSci[9]==1 && multSci[10]==1){
+		TrawStart = 0.5 * (iRawTimeNsSci[9] + iRawTimeNsSci[10]);
+	}
+
+	//std::cout << "Entries= " << fSingleTcalItemsSci->GetEntriesFast() << std::endl; 
+	/*if (fSingleTcalItemsSci && (fSingleTcalItemsSci->GetEntriesFast() == 1))
         {
             R3BSofSciSingleTcalData* hitsingletcalsci = (R3BSofSciSingleTcalData*)fSingleTcalItemsSci->At(0);
-            if (hitsingletcalsci)
-            {
-                TrawStart = hitsingletcalsci->GetRawTimeNs(ID_SOFSCI_CAVEC);
-            }
+            //if (!hitsingletcalsci)
+              //      continue;
+               
+	    TrawStart = hitsingletcalsci->GetRawTimeNs(ID_SOFSCI_CAVEC);
+	    //TrawStart = hitsingletcalsci->GetRawTimeNs(5);
+	   //std::cout << TrawStart  << " " << ID_SOFSCI_CAVEC << std::endl;
         } // end of if mult=1 in the Start
-
+*/
         // Get hit data Twim
         Double_t twimZ = 0.;
         if (fHitItemsTwim && fHitItemsTwim->GetEntriesFast() > 0)

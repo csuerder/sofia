@@ -110,7 +110,7 @@ void R3BSofTofWTcal2SingleTcal::Exec(Option_t* option)
   int nChs = int(NUMBER_OF_SOFTOFW_PMTS_PER_PLASTIC);
   UShort_t iDet; // 0-based
   UShort_t iCh;  // 0-based
-  Double_t iTraw[nDets*nChs][16];
+  Double_t iTraw[nDets*nChs][17];
   UShort_t mult[nDets*nChs];
   UShort_t mult_max=0;
   
@@ -119,16 +119,51 @@ void R3BSofTofWTcal2SingleTcal::Exec(Option_t* option)
   // --- ------------------------------------------- --- //
   // --- SOFSCI: GET THE Traw FROM THE SCI AT CAVE C --- //
   // --- ------------------------------------------- --- //
-  Int_t nHitsPerEvent_SofSci  = fSciSingleTcal->GetEntries();
-  if(nHitsPerEvent_SofSci!=1)
-  {
+  //Int_t nHitsPerEvent_SofSci  = fSciSingleTcal->GetEntries();
+  //if(nHitsPerEvent_SofSci!=1)
+  //{
   //  LOG(ERROR) << "dimension of SingleTcal TClonesArray for SofSci should be 1 but is" << nHitsPerEvent_SofSci;
-  }
+  //}
 
-  if(nHitsPerEvent_SofSci==1){
+/*
+    UShort_t iDetSci; // 0-bsed
+    UShort_t iChSci;  // 0-based
+    Double_t iRawTimeNsSci[NbDetsSci * 3];
+    UShort_t multSci[NbDetsSci * 3];
 
-  R3BSofSciSingleTcalData* hitSci = (R3BSofSciSingleTcalData*)fSciSingleTcal->At(0);
-  Double_t iRawTime_SofSci = hitSci->GetRawTimeNs(ID_SOFSCI_CAVEC);
+	// --- ------------------- --- //
+        // --- loop over tcal data --- //
+        // --- ------------------- --- //
+        Int_t nHitsSci = fTcalItemsSci->GetEntriesFast();
+        for (Int_t ihit = 0; ihit < nHitsSci; ihit++)
+        {
+            R3BSofSciTcalData* hittcalsci = (R3BSofSciTcalData*)fTcalItemsSci->At(ihit);
+            if (!hittcalsci)
+                continue;
+            iDetSci = hittcalsci->GetDetector() - 1;
+            iChSci = hittcalsci->GetPmt() - 1;
+            iRawTimeNsSci[iDetSci * 3 + iChSci] = hittcalsci->GetRawTimeNs();
+            multSci[iDetSci*3 + iChSci]++;
+        }
+
+
+        // --- ----------------------------------- --- //
+        // --- Get the Time at the Start detectors --- //
+        // --- ----------------------------------- --- //
+        Double_t TrawStart = -1000000.;
+	if(multSci[9]==1 && multSci[10]==1){
+		TrawStart = 0.5 * (iRawTimeNsSci[9] + iRawTimeNsSci[10]);
+	}
+
+*/
+
+  //if(TrawStart>-1000000.){
+
+    if(0){
+  //R3BSofSciSingleTcalData* hitSci = (R3BSofSciSingleTcalData*)fSciSingleTcal->At(0);
+  //Double_t iRawTime_SofSci = hitSci->GetRawTimeNs(ID_SOFSCI_CAVEC);
+
+  //std::cout << iRawTime_SofSci << std::endl;
 
   // --- ------------------------------------------------------------------------- --- //
   // --- SOFTOFW: CALCULATE THE RAW TIME, TOF AND POSITION FOR THE PLASTICS HITTED --- //
@@ -161,7 +196,7 @@ void R3BSofTofWTcal2SingleTcal::Exec(Option_t* option)
       {
 	  iRawPos  = iTraw[d*nChs+1][0]-iTraw[d*nChs][0]; // Raw position = Tdown - Tup
 	  iRawTime = 0.5*(iTraw[d*nChs][0]+iTraw[d*nChs+1][0]);
-	  iRawTof  = 0.5*(iRawTime - iRawTime_SofSci);
+	  //	  iRawTof  = 0.5*(iRawTime - iRawTime_SofSci);
           AddHitData(d+1, iRawTime, iRawTof, iRawPos);
       }
     }    

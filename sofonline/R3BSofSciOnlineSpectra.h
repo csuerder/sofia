@@ -18,6 +18,8 @@
 #include <iostream>
 #include <sstream>
 
+#include "R3BSofSciHitData.h"
+
 #include "detectors_cfg.h"
 
 #define NbDetectors NUMBER_OF_SOFSCI_DETECTORS
@@ -87,6 +89,9 @@ class R3BSofSciOnlineSpectra : public FairTask
      */
     virtual void Reset_Histo();
 
+    /** Virtual method Reset **/
+    virtual void Reset();
+
   private:
     TClonesArray* fMappedItemsSci; /**< Array with mapped items. */
     TClonesArray* fTcalItemsSci;   /**< Array with tcal items. */
@@ -94,6 +99,7 @@ class R3BSofSciOnlineSpectra : public FairTask
     TClonesArray* fMusHitItems;   /**< Array with MUSIC Hit items. */
     TClonesArray* fMusCalItems;   /**< Array with MUSIC Cal items. */
     TClonesArray* fCalItemsMwpc0; /**< Array with cal items of mwpc0. */
+    TClonesArray* fTofwHitData;
 
     // check for trigger should be done globablly (somewhere else)
     R3BEventHeader* header; /**< Event header.      */
@@ -121,11 +127,18 @@ class R3BSofSciOnlineSpectra : public FairTask
     // Histogram for correlation with R3B-Music
     TH2F* fh2_MusZvsRawPos;
     TH2F* fh2_MusDTvsRawPos;
+    TH2F* fh2_MusZvsRawTof;
+    TH2F* fh2_MusZvsRawTofS8,*fh2_Aqvsq;
 
     // Histogram for correlation with Mwpc0
     TH2F* fh2_Mwpc0vsRawPos;
 
     // check how many raw pos found
+
+
+    /** Private method TofwHitData **/
+    //** Adds a TofwHitData to the detector
+    R3BSofSciHitData* AddHitData(Int_t paddle, Double_t X, Double_t time);
 
   public:
     ClassDef(R3BSofSciOnlineSpectra, 1)

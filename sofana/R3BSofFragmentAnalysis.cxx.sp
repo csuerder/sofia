@@ -231,44 +231,46 @@ void R3BSofFrsAnalysis::Exec(Option_t* option)
     }
     // FIXME: This could need hit level from SCI
     for (Int_t i = 0; i < nHitSci; i++)
-      {
-	HitSci[i] = (R3BSofSciHitData*)(fSciHitDataCA->At(i));
-	if (HitSci[i]->GetPaddle() == 2){// Sci at S2
+    {
+        HitSci[i] = (R3BSofSciHitData*)(fSciHitDataCA->At(i));
+        if (HitSci[i]->GetPaddle() == 1)// Sci at S2
 	  //x_pos_s2 = HitSci[i]->GetX();
-	  x_pos_s2 = (HitSci[i]->GetX() + fPosFocalS2)*58.; // I don't understand...but keep it // SP: for a slope of 5.8cm/ns if X was in ns...
-	  ToF_S2_Cave = HitSci[i]->GetTof();// Sci at Cave-C // Does it mean S8?
-	}
-	//	else if (HitSci[i]->GetPaddle() == 2)
-	//	  ToF_S2_Cave = HitSci[i]->GetTof();// Sci at Cave-C // Does it mean S8?
-      }
-    
+	  x_pos_s2 = (HitSci[i]->GetX() + fPosFocalS2)*10.; // I don't understand...but keep it
+        else if (HitSci[i]->GetPaddle() == 2)
+            ToF_S2_Cave = HitSci[i]->GetTof();// Sci at Cave-C // Does it mean S8?
+    }
 
 
-	//	std::cout << ToF_S2_Cave  << " " << " " << x_pos_s2 << std::endl;
+    //std::cout << ToF_S2_Cave  << " " << " " << x_pos_s2 << std::endl;
 
 
     // Velocity
-    double Beta_S2_Cave = ((double)(fPathS2Cave) / (ToF_S2_Cave + fTOFS2Cave)) / c; 
+    double Beta_S2_Cave = ((fPathS2Cave / (ToF_S2_Cave - fTOFS2Cave))) / c; 
     //std::cout << fPathS2Cave << " " << fTOFS2Cave << " " << ToF_S2_Cave << " " << c << " " << Beta_S2_Cave << std::endl;
     double Gamma_S2_Cave = 1. / (TMath::Sqrt(1. - (Beta_S2_Cave) * (Beta_S2_Cave)));
 
+    //Comments by SP
     // Brho and A/q
+    // 0 order
     //     double Brho_Cave = fBfield_S2_Cave * frho_S2_Cave ; // SP: commenting out the position and keeping nominal brho 
-
-    double Brho_Cave = fBfield_S2_Cave * frho_S2_Cave * (1+x_pos_s2/(1000.*fDispS2));/* 
-      (1. - (((x_pos_cave/1000.) - fMagS2Cave * (x_pos_s2/1000.)) / fDispS2));*/
+    //    Brho_Cave = gRandom->Gaus(Brho_Cave,0.002*Brho_Cave);
     
-    //Brho_Cave = gRandom->Gaus(Brho_Cave,0.002*Brho_Cave);
+    // 1st order but only S2
+    double Brho_Cave = fBfield_S2_Cave * frho_S2_Cave * 
+      (1. + x_pos_s2 /100./ fDispS2));
+
+    //1st order with S2 and S8 positions
+    //        double Brho_Cave = fBfield_S2_Cave * frho_S2_Cave * 
+    //      (1. - (((x_pos_cave/100) - fMagS2Cave * (x_pos_s2/100)) / fDispS2));
+    
+
     fAq = Brho_Cave / (3.10716 * Gamma_S2_Cave * Beta_S2_Cave);
 
     //    std::cout << " " << fZ << " " << ToF_S2_Cave  << " " << fAq << " " << x_pos_s2 << std::endl;
 
     // Fill the data
     if (fZ > 1 && fAq > 0. && Brho_Cave > 0.)
-      if(ToF_S2_Cave + fTOFS2Cave > 650 && ToF_S2_Cave + fTOFS2Cave < 700) {
-	AddData(fZ + fOffsetZ, fAq /*+ fOffsetAq*/, Beta_S2_Cave, Brho_Cave, x_pos_s2, x_pos_cave);
-	//	std::cout << ToF_S2_Cave + fTOFS2Cave << " " << " " << x_pos_s2 << " " << fZ << std::endl;
-      }
+      AddData(fZ + fOffsetZ, fAq /*+ fOffsetAq*/, Beta_S2_Cave, Brho_Cave, x_pos_s2, x_pos_cave);
 
     if (HitSci)
         delete HitSci;

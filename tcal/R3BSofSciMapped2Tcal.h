@@ -26,6 +26,7 @@ class TRandom3;
 #include "R3BSofTcalPar.h"
 #include "R3BSofSciTcalData.h"
 #include "R3BSofSciMappedData.h"
+#include "R3BSofSciTcalData.h"
 
 
 class R3BSofSciMapped2Tcal : public FairTask
@@ -53,6 +54,9 @@ class R3BSofSciMapped2Tcal : public FairTask
 
   virtual void FinishTask();
 
+    /** Virtual method Reset **/
+    virtual void Reset();
+
   void SetOnline(Bool_t option) {fOnline = option;}
 
   Double_t CalculateTimeNs(UShort_t det, UShort_t pmt, UInt_t tf, UInt_t tc);
@@ -68,6 +72,11 @@ class R3BSofSciMapped2Tcal : public FairTask
   UInt_t fNevent;
 
   TRandom rand;
+
+
+    /** Private method CalData **/
+    //** Adds a CalData to the detector
+    R3BSofSciTcalData* AddCalData(Int_t iDet, Int_t iCh, Double_t tns);
 
  public:
   ClassDef(R3BSofSciMapped2Tcal, 1)

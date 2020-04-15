@@ -93,12 +93,14 @@ class R3BSofFrsOnlineSpectra : public FairTask
     TCanvas* cBrho;
     TCanvas* cAqvsq;
     TCanvas* cXs2vsBeta;
+    TCanvas* cXs8vsBeta;
 
     // Histograms for Hit data
     TH1F* fh1_beta;
     TH1F* fh1_brho;
     TH2F* fh2_Aqvsq;
     TH2F* fh2_Xs2vsbeta;
+    TH2F* fh2_Xs8vsbeta;
 
   public:
     ClassDef(R3BSofFrsOnlineSpectra, 1)

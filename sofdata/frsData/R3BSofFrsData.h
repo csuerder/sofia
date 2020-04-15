@@ -22,6 +22,7 @@ class R3BSofFrsData : public TObject
      *@param fBeta   Beta of fragments
      *@param fBrho   Brho of fragments
      *@param cs2     Position at S2
+     *@param cs8     Position at S8
      *@param xc      Position at Cave
      **/
     R3BSofFrsData(Double_t z, Double_t aq, Double_t beta, Double_t brho, Double_t xs2 = 0., Double_t xc = 0.);
@@ -35,11 +36,12 @@ class R3BSofFrsData : public TObject
     inline const Double_t GetBeta() const { return fBeta; }
     inline const Double_t GetBrho() const { return fBrho; }
     inline const Double_t GetXS2() const { return fxs2; }
+    //inline const Double_t GetXS8() const { return fxs8; }
     inline const Double_t GetXCave() const { return fxc; }
 
   protected:
     Double_t fZ, fAq; // ID
-    Double_t fBeta, fBrho, fxs2, fxc;
+    Double_t fBeta, fBrho, fxs2, fxc; //fxs8
 
   public:
     ClassDef(R3BSofFrsData, 1)

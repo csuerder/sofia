@@ -143,7 +143,7 @@ void R3BSofSciMapped2Tcal::Exec(Option_t* option)
       continue;
     }
     tns = CalculateTimeNs(iDet,iCh,iTf,iTc);
-    new((*fTcal)[fNumTcal++]) R3BSofSciTcalData(iDet,iCh,tns);
+    AddCalData(iDet,iCh,tns);
   }
     
   ++fNevent;
@@ -156,12 +156,29 @@ void R3BSofSciMapped2Tcal::FinishEvent()
   fNumTcal = 0;
 }
 
+// -----   Public method Reset   ------------------------------------------------
+void R3BSofSciMapped2Tcal::Reset()
+{
+    LOG(DEBUG) << "Clearing TcalCalData Structure";
+    if (fTcal)
+        fTcal->Clear();
+}
+
 
 void R3BSofSciMapped2Tcal::FinishTask()
 {
 
 }
 
+
+// -----   Private method AddCalData  --------------------------------------------
+R3BSofSciTcalData* R3BSofSciMapped2Tcal::AddCalData(Int_t iDet, Int_t iCh, Double_t tns)
+{
+    // It fills the R3BSofSciTcalData
+    TClonesArray& clref = *fTcal;
+    Int_t size = clref.GetEntriesFast();
+    return new (clref[size]) R3BSofSciTcalData(iDet,iCh,tns);
+}
 
 
 Double_t R3BSofSciMapped2Tcal::CalculateTimeNs(UShort_t iDet, UShort_t iCh, UInt_t iTf, UInt_t iTc)

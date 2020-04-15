@@ -140,15 +140,18 @@ void R3BSofSciTcal2SingleTcal::Exec(Option_t* option)
 #endif
   UShort_t iDet; // 0-based
   UShort_t iCh;  // 0-based
-  Double_t iTraw[nDets*nChs][16];
+  Double_t iTraw[nDets*nChs][33];
   UShort_t mult[nDets*nChs];
   UShort_t mult_max=0;
   UInt_t maskR[nDets]; // if mult_max>=32, doesn't work
   UInt_t maskL[nDets]; // if mult_max>=32, doesn't work
   
-  for(UShort_t i=0; i<nDets*nChs; i++) mult[i]=0;
+  for(Int_t i=0; i<nDets*nChs; i++) mult[i]=0;
 
   Int_t nHitsPerEvent_SofSci = fTcal->GetEntries();
+
+  //if(nHitsPerEvent_SofSci>1)  std::cout<< nHitsPerEvent_SofSci << std::endl;
+
   for(int ihit=0; ihit<nHitsPerEvent_SofSci; ihit++){
     R3BSofSciTcalData* hit = (R3BSofSciTcalData*)fTcal->At(ihit);
     if(!hit)             continue;
@@ -157,31 +160,38 @@ void R3BSofSciTcal2SingleTcal::Exec(Option_t* option)
     if(mult_max>=32)     continue; // if multiplicity in a Pmt is higher than 16 are discarded, this code cannot handle it
     iTraw[iDet*nChs+iCh][mult[iDet*nChs+iCh]] = hit->GetRawTimeNs();
     mult[iDet*nChs+iCh]++;
+    //std::cout<< "step 2 " << "  " << iDet << " " << mult[iDet*nChs+iCh]<< std::endl;
     if (mult[iDet*nChs+iCh]>mult_max) mult_max=mult[iDet*nChs+iCh];
   }// end of loop over the TClonesArray of Tcal data
   
   // LOOP OVER THE ENTRIES TO GET ALL THE POSSIBLE COMBINATION AND TO FIND THE GOOD ONE WITHOUT DOUBLE COUNTS
   if (nHitsPerEvent_SofSci>0){
+
+    //std::cout<< "step 0" << std::endl;
+
     Double_t iRawPos;
     Double_t iRawTime_dSta;
     Double_t iRawTime_dSto;
     Double_t RawPos[nDets];
     Double_t RawTime[nDets];
-    UShort_t mult_selectHits[nDets];
+    Int_t mult_selectHits[nDets];
+
 #ifdef NUMBER_OF_SOFSCI_TOF
     Double_t RawTof[nTof];
     Int_t selectLeftHit[nDets];
     Int_t selectRightHit[nDets];
     Double_t iRawTof; 
     int dSta, dSto,rank;
-    for(UShort_t det=0; det <nDets; det++){
+
+    //std::cout<< "step 1" << std::endl;
+
+    for(Int_t det=0; det <nDets; det++){
       selectLeftHit[det]=-1;
       selectRightHit[det]=-1;
       mult_selectHits[det]=0;
       maskR[det]= 0x0;
       maskL[det]= 0x0;
     }
-
     // SELECTION OF THE MULTIPLICITY LOOKING AT THE ToFraw VERSUS Cave C SCINTILLATOR
     // Since the multiplicity at Cave C is muchlower than at S2 or S8
     // all the hit finder are done looking at the Tof from S2 or S8 to cave C
@@ -189,20 +199,29 @@ void R3BSofSciTcal2SingleTcal::Exec(Option_t* option)
     // first selection
     if(nDets != ID_SOFSCI_CAVEC)
       LOG(ERROR) << "R3BSofSciTcal2SingleTcal::Exec() NUMBER_OF_SOFSCI_DETECTORS != ID_SOFSCI_CAVEC";
-    dSta = fRawTofPar->GetFirstStart()-1;
+    //dSta = fRawTofPar->GetFirstStart()-1;//JLRS removed!!
+    dSta = fRawTofPar->GetFirstStart();
     dSto = nDets-1;
     rank = GetTofRank(dSta,dSto);
-    for(UShort_t multRsta=0; multRsta<mult[dSta*nChs]; multRsta++){
-     for(UShort_t multLsta=0; multLsta<mult[dSta*nChs+1]; multLsta++){
 
-	if((((maskR[dSta]>>multRsta)&(0x1))==1) || (((maskL[dSta]>multLsta)&(0x1))==1)) continue;
+   // std::cout<< "step 2 " << mult[dSta*nChs]<< "  " << mult[dSta*nChs+1]<< std::endl;
+   // std::cout<< "step 3 " << mult[dSto*nChs]<< "  " << mult[dSto*nChs+1]<< std::endl;
+
+    for(Int_t multRsta=0; multRsta<mult[dSta*nChs]; multRsta++){
+     for(Int_t multLsta=0; multLsta<mult[dSta*nChs+1]; multLsta++){
+
+  //      std::cout<< maskR[dSta] << "  " << maskL[dSta] << std::endl;
+//
+   // std::cout<< "step 4" << std::endl;
+
+	if((((maskR[dSta]>>multRsta)&(0x1))==1) || (((maskL[dSta]>>multLsta)&(0x1))==1)) continue;
 	iRawPos = (iTraw[dSta*nChs][multRsta] - iTraw[dSta*nChs+1][multLsta]);
 	if ((fRawPosPar->GetSignalTcalParams(2*dSta)>iRawPos)||(iRawPos>fRawPosPar->GetSignalTcalParams(2*dSta+1))) continue;	
   
 	for(UShort_t multRsto=0; multRsto<mult[dSto*nChs]; multRsto++){
 	  for(UShort_t multLsto=0; multLsto<mult[dSto*nChs+1]; multLsto++){
 	  
-	    if((((maskR[dSto]>>multRsto)&(0x1))==1) || (((maskL[dSto]>multLsto)&(0x1))==1)) continue;
+	    if((((maskR[dSto]>>multRsto)&(0x1))==1) || (((maskL[dSto]>>multLsto)&(0x1))==1)) continue;
 	    iRawPos = (iTraw[dSto*nChs][multRsto] - iTraw[dSto*nChs+1][multLsto]);
 	    if ((iRawPos<fRawPosPar->GetSignalTcalParams(2*dSto))||(iRawPos>fRawPosPar->GetSignalTcalParams(2*dSto+1))) continue;
 	    iRawTime_dSta = 0.5 * (iTraw[dSta*nChs][multRsta]+iTraw[dSta*nChs+1][multLsta]);	
@@ -234,7 +253,7 @@ void R3BSofSciTcal2SingleTcal::Exec(Option_t* option)
 	for(UShort_t multRsta=0; multRsta<mult[dSta*nChs]; multRsta++){
 	  for(UShort_t multLsta=0; multLsta<mult[dSta*nChs+1];multLsta++){
 	
-	    if((((maskR[dSta]>>multRsta)&(0x1))==1) || (((maskL[dSta]>multLsta)&(0x1))==1)) continue;
+	    if((((maskR[dSta]>>multRsta)&(0x1))==1) || (((maskL[dSta]>>multLsta)&(0x1))==1)) continue;
 	    iRawPos = (iTraw[dSta*nChs][multRsta] - iTraw[dSta*nChs+1][multLsta]);
 	    if ((fRawPosPar->GetSignalTcalParams(2*dSta)>iRawPos)||(iRawPos>fRawPosPar->GetSignalTcalParams(2*dSta+1))) continue;	
 	    iRawTime_dSta = 0.5 * (iTraw[dSta*nChs][multRsta]+iTraw[dSta*nChs+1][multLsta]);	
@@ -254,6 +273,7 @@ void R3BSofSciTcal2SingleTcal::Exec(Option_t* option)
     }//end of if the first selection succeed
 
     for(UShort_t d=0; d<nDets; d++){
+	    //std::cout << mult_selectHits[d] << std::endl;
       if(mult_selectHits[d]>0){
 	RawPos[d] = iTraw[d*nChs][selectRightHit[d]] - iTraw[d*nChs+1][selectLeftHit[d]];
 	RawTime[d] = 0.5 * (iTraw[d*nChs][selectRightHit[d]] + iTraw[d*nChs+1][selectLeftHit[d]]);
@@ -262,6 +282,7 @@ void R3BSofSciTcal2SingleTcal::Exec(Option_t* option)
 	RawPos[d] = -1000000.;
 	RawTime[d] = -1000000.;
       }
+      //std::cout << RawTime[d] << std::endl;
     }
     Int_t iTof=0;
     for(UShort_t dstart=0; dstart<nDets-1; dstart++){
@@ -275,6 +296,7 @@ void R3BSofSciTcal2SingleTcal::Exec(Option_t* option)
     }
 
 #else
+    
     for(UShort_t d=0; d<nDets;d++) {
       maskR[d]= 0x0;
       maskL[d]= 0x0;
@@ -288,7 +310,7 @@ void R3BSofSciTcal2SingleTcal::Exec(Option_t* option)
 	  if(iRawPos<fRawPosPar->GetSignalTcalParams(2*d))   continue;
 	  if(iRawPos>fRawPosPar->GetSignalTcalParams(2*d+1)) continue;
 	  // if this hit has already been used, continue
-	  if((((maskR[d]>>multR)&(0x1))==1) || (((maskL[d]>multL)&(0x1))==1)) continue;
+	  if((((maskR[d]>>multR)&(0x1))==1) || (((maskL[d]>>multL)&(0x1))==1)) continue;
 	  // get the RawPos of the detector
 	  RawPos[d] = iRawPos;
 	  // calculate the iRawTime

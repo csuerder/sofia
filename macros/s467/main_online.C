@@ -49,8 +49,9 @@ void main_online()
     //TString filename = "--stream=lxir123:7803";
     //TString filename = "~/lmd/sofia2019/main0079_0001.lmd";
     //TString filename = "~/lmd/sofia2020/neu.lmd";
-    //TString filename = "/lustre/land/202002_s444/lustre/r3b/202002_s444/main0013_0001.lmd";
-    //TString filename = "/lustre/land/202002_s444/stitched/main0076_0001.lmd";
+    //TString filename = "/lustre/land/202002_s467/stitched/main0340_0001.lmd";
+    //    TString filename = "/lustre/land/202002_s467/stitched/main0246_0001.lmd"; // 86Kr direct
+    //TString filename = "/lustre/land/202002_s467/stitched/main0274_0001.lmd";
     //TString filename = "/media/audrey/COURGE/SOFIA/ANALYSE/SOFIA3/data/202002_eng/main0073_0001.lmd";
 
     // Output file ------------------------------------------
@@ -62,7 +63,7 @@ void main_online()
 
     // Online server configuration --------------------------
     Int_t refresh = 1; // Refresh rate for online histograms
-    Int_t port = 8888; // Port number for the online visualization, example lxgXXXX:8888
+	    Int_t port = 8888; // Port number for the online visualization, example lxgXXXX:8888
 
     // UCESB configuration ----------------------------------
     TString ntuple_options = "RAW";
@@ -87,22 +88,22 @@ void main_online()
     ucesb_path.ReplaceAll("//", "/");
 
     // Setup: Selection of detectors ------------------------
-    Bool_t fFrs = false;     // FRS for production of exotic beams (just scintillators)
-    Bool_t fFrsTpcs = true; // Tpcs at FRS (S2) for scintillator calibration in position
+    Bool_t fFrs = true;     // FRS for production of exotic beams (just scintillators)
+    Bool_t fFrsTpcs = false; // Tpcs at FRS (S2) for scintillator calibration in position
     Bool_t fFrsMws = false;  // MWs at FRS (S8) for beam position
     Bool_t fFrsSci = true;   // Start: Plastic scintillators at FRS
     Bool_t fMwpc0 = true;    // MWPC0 for tracking at entrance of Cave-C
     Bool_t fMusic = true;    // R3B-Music: Ionization chamber for charge-Z
     Bool_t fSci = true;      // Start: Plastic scintillator for ToF
     Bool_t fAms = false;     // AMS tracking detectors
-    Bool_t fCalifa = false;  // Califa calorimeter
+    Bool_t fCalifa = true;  // Califa calorimeter
     Bool_t fMwpc1 = true;    // MWPC1 for tracking of fragments in front of target
     Bool_t fMwpc2 = true;    // MWPC2 for tracking of fragments before GLAD
     Bool_t fTwim = true;     // Twim: Ionization chamber for charge-Z of fragments
     Bool_t fMwpc3 = true;    // MWPC3 for tracking of fragments behind GLAD
     Bool_t fTofW = true;     // ToF-Wall for time-of-flight of fragments behind GLAD
     Bool_t fScalers = true;  // SIS3820 scalers at Cave C
-    Bool_t fNeuland = false;  // NeuLAND for neutrons behind GLAD
+    Bool_t fNeuland = true;  // NeuLAND for neutrons behind GLAD
     Bool_t fTracking = true; // Tracking of fragments inside GLAD
 
     // Calibration files ------------------------------------
@@ -110,6 +111,7 @@ void main_online()
     // Parameters for SOFIA detectors
     TString sofiacaldir = dir + "/sofia/macros/s467/parameters/";
     TString sofiacalfilename = sofiacaldir + "CalibParam.par";
+    //TString sofiacalfilename = sofiacaldir + "CalibParam_40Ca_RT.par";
     sofiacalfilename.ReplaceAll("//", "/");
     // Parameters for CALIFA mapping
     TString califamapdir = dir + "/macros/r3b/unpack/s467/califa/parameters/";
@@ -365,13 +367,7 @@ void main_online()
         run->AddTask(SofSciTcal2STcal);
     }
 
-    // FRS
-    if (fMwpc0 && fSci && fMusic && fFrs)
-    {
-        R3BSofFrsAnalysis* FrsAna = new R3BSofFrsAnalysis();
-        FrsAna->SetOnline(NOTstorehitdata);
-        run->AddTask(FrsAna);
-    }
+
 
     // AMS
     if (fAms)
@@ -477,11 +473,7 @@ void main_online()
         R3BSofScalersOnlineSpectra* scalersonline = new R3BSofScalersOnlineSpectra();
         run->AddTask(scalersonline);
     }
-    if (fFrs && fMusic && fSci)
-    {
-        R3BSofFrsOnlineSpectra* frsonline = new R3BSofFrsOnlineSpectra();
-        run->AddTask(frsonline);
-    }
+
     if (fMwpc0)
     {
         R3BSofMwpcOnlineSpectra* mw0online = new R3BSofMwpcOnlineSpectra("SofMwpc0OnlineSpectra", 1, "Mwpc0");
@@ -523,7 +515,7 @@ void main_online()
     if (fMusic && fCalifa && fTwim)
     {
         R3BAmsCorrelationOnlineSpectra* CalifaAmsOnline = new R3BAmsCorrelationOnlineSpectra();
-        CalifaAmsOnline->SetZproj(36.0); // Projectile atomic number
+        CalifaAmsOnline->SetZproj(20.0); // Projectile atomic number
         CalifaAmsOnline->SetCalifa_bins_maxrange(500, 300000); // 300000 -> 300MeV
         run->AddTask(CalifaAmsOnline);
     }
@@ -589,10 +581,17 @@ void main_online()
     if (fTofW)
     {
         R3BSofToFWOnlineSpectra* tofwonline = new R3BSofToFWOnlineSpectra();
-        tofwonline->Set_TwimvsTof_range(-87.,-65.);
+        tofwonline->Set_TwimvsTof_range(-300.,300.);
         run->AddTask(tofwonline);
     }
 
+    // FRS
+    if (fMwpc0 && fSci && fMusic && fFrs)
+    {
+        R3BSofFrsAnalysis* FrsAna = new R3BSofFrsAnalysis();
+        FrsAna->SetOnline(NOTstorehitdata);
+        run->AddTask(FrsAna);
+    }
     if (fMwpc2 && fTwim && fSci && fTracking)
     {
         if(fTofW && fMwpc3){
@@ -604,6 +603,11 @@ void main_online()
         R3BSofTrackingOnlineSpectra* Trackingonline = new R3BSofTrackingOnlineSpectra();
         Trackingonline->Set_Charge_range(10.,38.);
         run->AddTask(Trackingonline); 
+    }
+    if (fFrs && fMusic && fSci)
+    {
+        R3BSofFrsOnlineSpectra* frsonline = new R3BSofFrsOnlineSpectra();
+        run->AddTask(frsonline);
     }
 
     R3BSofOnlineSpectra* sofonline = new R3BSofOnlineSpectra();

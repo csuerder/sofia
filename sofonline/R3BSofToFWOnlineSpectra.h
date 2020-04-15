@@ -20,6 +20,7 @@
 #include "detectors_cfg.h"
 
 #define NbDets NUMBER_OF_SOFTOFW_PLASTICS
+#define NbDetsSci NUMBER_OF_SOFSCI_DETECTORS
 #define NbChs NUMBER_OF_SOFTOFW_PMTS_PER_PLASTIC
 
 class TClonesArray;
@@ -97,6 +98,7 @@ class R3BSofToFWOnlineSpectra : public FairTask
     TClonesArray* fSingleTcalItemsSci; /**< Array with single tcal items of Sci */
     TClonesArray* fHitItemsTwim;       /**< Array with hit items of twim. */
     TClonesArray* fCalItemsMwpc;       /**< Array with cal items of mwpc3. */
+    TClonesArray* fTcalItemsSci;       /**< Array with cal items of mwpc3. */
     Float_t fTwimTofRangeMax;          // Range for Twim vs ToF histograms
     Float_t fTwimTofRangeMin;
 

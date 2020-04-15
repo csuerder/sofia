@@ -87,13 +87,14 @@ InitStatus R3BSofFrsOnlineSpectra::Init()
     TString Name1;
     TString Name2;
 
-    cBeta = new TCanvas("Beta", "Beta info", 10, 10, 800, 700);
+    cBeta = new TCanvas("FRS_Beta", "Beta info", 10, 10, 800, 700);
 
     // Hit data, beta
     Name1 = "fh1_beta_frs";
     Name2 = "FRS: Beta";
-    fh1_beta = new TH1F(Name1, Name2, 400, 0., 1.01);
-    fh1_beta->GetXaxis()->SetTitle("Beta");
+    //fh1_beta = new TH1F(Name1, Name2, 1800, 0.65, 0.85);
+    fh1_beta = new TH1F(Name1, Name2, 18000, 0.0, 0.85);
+    fh1_beta->GetXaxis()->SetTitle("#beta");
     fh1_beta->GetYaxis()->SetTitle("Counts");
     fh1_beta->GetYaxis()->SetTitleOffset(1.15);
     fh1_beta->GetXaxis()->CenterTitle(true);
@@ -107,11 +108,11 @@ InitStatus R3BSofFrsOnlineSpectra::Init()
     fh1_beta->Draw("");
 
     // Hit data, brho
-    cBrho = new TCanvas("Brho", "Brho info", 10, 10, 800, 700);
+    cBrho = new TCanvas("FRS_Brho", "Brho info", 10, 10, 800, 700);
 
     Name1 = "fh1_brho_frs";
     Name2 = "FRS: Brho S2-Cave";
-    fh1_brho = new TH1F(Name1, Name2, 400, 4., 15.);
+    fh1_brho = new TH1F(Name1, Name2, 800, 4., 12.);
     fh1_brho->GetXaxis()->SetTitle("Brho [Tm]");
     fh1_brho->GetYaxis()->SetTitle("Counts");
     fh1_brho->GetYaxis()->SetTitleOffset(1.15);
@@ -126,11 +127,11 @@ InitStatus R3BSofFrsOnlineSpectra::Init()
     fh1_brho->Draw("");
 
     // Hit data, Aq_vs_q
-    cAqvsq = new TCanvas("Aq_vs_q", "A/q_vs_q 2D info", 10, 10, 800, 700);
+    cAqvsq = new TCanvas("FRS_Aq_vs_q", "A/q_vs_q 2D info", 10, 10, 800, 700);
 
-    Name1 = "fh2_Aq_vs_q";
+    Name1 = "fh2_Aq_vs_q_frs";
     Name2 = "FRS: A/q vs q";
-    fh2_Aqvsq = new TH2F(Name1, Name2, 300, 0.5, 3.5, 300, 5, 23.5);
+    fh2_Aqvsq = new TH2F(Name1, Name2, 3000, 1., 3, 1300, 8, 39.5);
     fh2_Aqvsq->GetXaxis()->SetTitle("A/q");
     fh2_Aqvsq->GetYaxis()->SetTitle("Z [Charge units]");
     fh2_Aqvsq->GetYaxis()->SetTitleOffset(1.1);
@@ -143,11 +144,11 @@ InitStatus R3BSofFrsOnlineSpectra::Init()
     fh2_Aqvsq->Draw("col");
 
     // Hit data, Xs2_vs_Tof
-    cXs2vsBeta = new TCanvas("Xs2_vs_beta", "Xs2_vs_Beta 2D info", 10, 10, 800, 700);
+    cXs2vsBeta = new TCanvas("FRS_Xs2_vs_beta", "Xs2_vs_Beta 2D info", 10, 10, 800, 700);
 
-    Name1 = "fh2_Xs2_vs_beta";
+    Name1 = "fh2_Xs2_vs_beta_frs";
     Name2 = "FRS: Xs2 vs #beta";
-    fh2_Xs2vsbeta = new TH2F(Name1, Name2, 800, -100., 100., 400, 0.1, 1.01);
+    fh2_Xs2vsbeta = new TH2F(Name1, Name2, 800, -70., 70., 1200, 0.5, 0.9);
     fh2_Xs2vsbeta->GetXaxis()->SetTitle("X at S2 [mm]");
     fh2_Xs2vsbeta->GetYaxis()->SetTitle("FRS-#beta");
     fh2_Xs2vsbeta->GetYaxis()->SetTitleOffset(1.1);
@@ -159,11 +160,30 @@ InitStatus R3BSofFrsOnlineSpectra::Init()
     fh2_Xs2vsbeta->GetYaxis()->SetTitleSize(0.045);
     fh2_Xs2vsbeta->Draw("col");
 
+    // Hit data, Xs8_vs_Tof
+    /*
+    cXs2vsBeta = new TCanvas("FRS_Xs8_vs_beta", "Xs8_vs_Beta 2D info", 10, 10, 800, 700);
+
+    Name1 = "fh2_Xs8_vs_beta_frs";
+    Name2 = "FRS: Xs8 vs #beta";
+    fh2_Xs8vsbeta = new TH2F(Name1, Name2, 800, -70., 70., 1200, 0.5, 0.9);
+    fh2_Xs8vsbeta->GetXaxis()->SetTitle("X at S8 [mm]");
+    fh2_Xs8vsbeta->GetYaxis()->SetTitle("FRS-#beta");
+    fh2_Xs8vsbeta->GetYaxis()->SetTitleOffset(1.1);
+    fh2_Xs8vsbeta->GetXaxis()->CenterTitle(true);
+    fh2_Xs8vsbeta->GetYaxis()->CenterTitle(true);
+    fh2_Xs8vsbeta->GetXaxis()->SetLabelSize(0.045);
+    fh2_Xs8vsbeta->GetXaxis()->SetTitleSize(0.045);
+    fh2_Xs8vsbeta->GetYaxis()->SetLabelSize(0.045);
+    fh2_Xs8vsbeta->GetYaxis()->SetTitleSize(0.045);
+    fh2_Xs8vsbeta->Draw("col");
+    */
     // MAIN FOLDER-FRS
     TFolder* mainfol = new TFolder("FRS", "FRS info");
     mainfol->Add(cBeta);
     mainfol->Add(cBrho);
     mainfol->Add(cXs2vsBeta);
+    //mainfol->Add(cXs8vsBeta);
     mainfol->Add(cAqvsq);
     run->AddObject(mainfol);
 
@@ -181,6 +201,7 @@ void R3BSofFrsOnlineSpectra::Reset_Histo()
     fh1_brho->Reset();
     fh2_Aqvsq->Reset();
     fh2_Xs2vsbeta->Reset();
+    //fh2_Xs8vsbeta->Reset();
 }
 
 void R3BSofFrsOnlineSpectra::Exec(Option_t* option)
@@ -202,6 +223,7 @@ void R3BSofFrsOnlineSpectra::Exec(Option_t* option)
             fh1_brho->Fill(hit->GetBrho());
             fh2_Aqvsq->Fill(hit->GetAq(), hit->GetZ());
             fh2_Xs2vsbeta->Fill(hit->GetXS2(), hit->GetBeta());
+            //fh2_Xs8vsbeta->Fill(hit->GetXS8(), hit->GetBeta());
         }
     }
 
