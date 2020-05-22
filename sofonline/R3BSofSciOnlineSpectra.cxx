@@ -714,11 +714,13 @@ void R3BSofSciOnlineSpectra::FinishTask()
 	    if(fIdS2>0){
 	      fh1_RawTof_FromS2_AtTcalMult1[i]->Write();
 	      fh1_RawTof_FromS2_AtTcalMult1_wTref[i]->Write();
+	      fh1_RawTof_FromS2_AtSingleTcal_wTref[i]->Write();
 	      cSciRawTof_FromS2[i]->Write();
 	    }
 	    if(fIdS8>0){
 	      fh1_RawTof_FromS8_AtTcalMult1[i]->Write();
 	      fh1_RawTof_FromS8_AtTcalMult1_wTref[i]->Write();
+	      fh1_RawTof_FromS8_AtSingleTcal_wTref[i]->Write();
 	      cSciRawTof_FromS8[i]->Write();
 	    }
         }
@@ -737,6 +739,10 @@ void R3BSofSciOnlineSpectra::FinishTask()
         }
         if (fCalItemsMwpc0)
             fh2_Mwpc0vsRawPos->Write();
+	if (fMusCalItems&&fIdS2>0){
+	  cAqvsq->Write();
+	  fh2_Aqvsq->Write();
+	}
     }
 }
 
