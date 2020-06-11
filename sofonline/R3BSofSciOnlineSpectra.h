@@ -122,6 +122,7 @@ class R3BSofSciOnlineSpectra : public FairTask
     TCanvas** cMusicZvsRawTof_FromS2;  // [fNbDetectors];
     TCanvas** cSciRawTof_FromS8;       // [fNbDetectors];
     TCanvas** cMusicZvsRawTof_FromS8;  // [fNbDetectors];
+    TCanvas*  cBeta_Correlation;
     TCanvas*  cAqvsq;
 
     // Histograms for Mapped data : Fine Time and Mult
@@ -140,6 +141,8 @@ class R3BSofSciOnlineSpectra : public FairTask
     TH1D** fh1_RawTof_FromS8_AtTcalMult1_wTref;  // [fNbDetectors];
     TH1D** fh1_RawTof_FromS8_AtSingleTcal_wTref; // [fNbDetectors];
 
+    TH2F** fh2_Beta_Correlation;
+    
     // Histogram for correlation with R3B-Music
     TH2F** fh2_MusZvsRawPos;          //[fNbDetectors];
     TH2F*  fh2_MusDTvsRawPos;

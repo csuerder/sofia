@@ -273,6 +273,8 @@ InitStatus R3BSofSciOnlineSpectra::Init()
     fh1_RawTof_FromS8_AtTcalMult1 = new TH1D*[fNbDetectors];
     fh1_RawTof_FromS8_AtTcalMult1_wTref = new TH1D*[fNbDetectors];
     fh1_RawTof_FromS8_AtSingleTcal_wTref = new TH1D*[fNbDetectors];
+    fh2_Beta_Correlation = new TH2F*[fNbDetectors*(fNbDetectors-1)*(fNbDetectors*(fNbDetectors-1)/2-1)/4];
+    //
     cMusicZvsRawTof_FromS8 = new TCanvas*[fNbDetectors];
     fh2_MusZvsRawTof_FromS8 = new TH2F*[fNbDetectors];
     for (Int_t dstop = 0; dstop < fNbDetectors; dstop++)
@@ -360,6 +362,45 @@ InitStatus R3BSofSciOnlineSpectra::Init()
 	  fh2_MusZvsRawTof_FromS8[dstop]->Draw("colz");
 	}
       }
+    // Beta comparison
+    sprintf(Name1, "Beta_correlation");
+    cBeta_Correlation = new TCanvas(Name1, Name1, 10, 10, 800, 800);
+    cBeta_Correlation->Divide(2,2);
+
+    char Name3[255];
+    sprintf(Name1, "S2-CaveC");
+    sprintf(Name2, "S2-S8");
+    sprintf(Name3, "%s_vs_%s", Name1, Name2);
+    fh2_Beta_Correlation[0] = new TH2F(Name3, Name3, 300, 0.6, 0.9, 300, 0.6, 0.9); 
+    fh2_Beta_Correlation[0]->GetXaxis()->SetTitle(Name1);
+    fh2_Beta_Correlation[0]->GetYaxis()->SetTitle(Name2);
+    
+    sprintf(Name1, "S2-S8");
+    sprintf(Name2, "S8-CaveC");
+    sprintf(Name3, "%s_vs_%s", Name1, Name2);
+    fh2_Beta_Correlation[1] = new TH2F(Name3, Name3, 300, 0.6, 0.9, 300, 0.6, 0.9);
+    fh2_Beta_Correlation[1]->GetXaxis()->SetTitle(Name1);
+    fh2_Beta_Correlation[1]->GetYaxis()->SetTitle(Name2);
+
+    sprintf(Name1, "S8-CaveC");
+    sprintf(Name2, "S2-CaveC");
+    sprintf(Name3, "%s_vs_%s", Name1, Name2);
+    fh2_Beta_Correlation[2] = new TH2F(Name3, Name3, 300, 0.6, 0.9, 300, 0.6, 0.9);
+    fh2_Beta_Correlation[2]->GetXaxis()->SetTitle(Name1);
+    fh2_Beta_Correlation[2]->GetYaxis()->SetTitle(Name2);
+
+    for(Int_t i = 0; i < 3; i++){
+      cBeta_Correlation->cd(i+1);
+      fh2_Beta_Correlation[i]->GetYaxis()->SetTitleOffset(1.1);
+      fh2_Beta_Correlation[i]->GetXaxis()->CenterTitle(true);
+      fh2_Beta_Correlation[i]->GetYaxis()->CenterTitle(true);
+      fh2_Beta_Correlation[i]->GetXaxis()->SetLabelSize(0.045);
+      fh2_Beta_Correlation[i]->GetXaxis()->SetTitleSize(0.045);
+      fh2_Beta_Correlation[i]->GetYaxis()->SetLabelSize(0.045);
+      fh2_Beta_Correlation[i]->GetYaxis()->SetTitleSize(0.045);
+      fh2_Beta_Correlation[i]->Draw("colz");
+    }
+    
     
     // === HIT DATA AoverQ VERSUS Q === //
     if(fIdS2>0){
@@ -545,7 +586,9 @@ void R3BSofSciOnlineSpectra::Exec(Option_t* option)
         // --- ------------------------------ --- //
 	Double_t xs2 = -10000.;
 	Double_t toff = -10000.;
-        double Beta_S2_Cave, Gamma_S2_Cave, Brho_S2_Cave;
+        double Tof_wTref_S2_Cave = -10000., Beta_S2_Cave, Gamma_S2_Cave, Brho_S2_Cave;
+        double Tof_wTref_S2_S8 = -10000., Beta_S2_S8, Gamma_S2_S8, Brho_S2_S8;
+        double Tof_wTref_S8_Cave = -10000., Beta_S8_Cave, Gamma_S8_Cave, Brho_S8_Cave;
         double slope_calib = -5.8; // only for the s467, for S2 SofSci 
 	Int_t d,t;
         if (fSingleTcalItemsSci)
@@ -561,6 +604,7 @@ void R3BSofSciOnlineSpectra::Exec(Option_t* option)
 		if(fIdS8>0) fh1_RawTof_FromS8_AtSingleTcal_wTref[d]->Fill(hitsingletcal->GetRawTofNs_FromS8());
 		if (d == fIdS2-1)         xs2 = hitsingletcal->GetRawPosNs() * slope_calib;
 		if ((d == fNbDetectors-1) && (fIdS2>0)) toff = hitsingletcal->GetRawTofNs_FromS2();
+		//if ((d == fNbDetectors-1) && (fIdS8>0)) toff = hitsingletcal->GetRawTofNs_FromS8(); //for S8
 		if (MusicZ > 0) {
 		  fh2_MusZvsRawPos[d]->Fill(hitsingletcal->GetRawPosNs(), MusicZ);
 		  if (fIdS2>0) fh2_MusZvsRawTof_FromS2[d]->Fill(hitsingletcal->GetRawTofNs_FromS2(), MusicZ);
@@ -569,13 +613,36 @@ void R3BSofSciOnlineSpectra::Exec(Option_t* option)
 		if (d == fNbDetectors-1){
 		  fh2_MusDTvsRawPos->Fill(hitsingletcal->GetRawPosNs(), MusicDT); // at Cave C
 		}
+		if(fIdS2>0&&fIdS8>0){
+		  if(d==2) Tof_wTref_S2_S8 = hitsingletcal->GetRawTofNs_FromS2();
+		  if(d==3){
+		    Tof_wTref_S2_Cave = hitsingletcal->GetRawTofNs_FromS2(); // same as toff
+		    Tof_wTref_S8_Cave = hitsingletcal->GetRawTofNs_FromS8();
+		  }
+		}
             }// end of loop over the SingleTcalItems
 
 	    if (MusicZ > 0 && xs2!=-10000. && toff!=-10000.) {
-	      Beta_S2_Cave = 15424.3 / (toff + 675. - 1922.) / 29.9999; // After run 336
+	      //Beta_S2_Cave = 15424.3 / (toff + 675. - 1922.) / 29.9999; // After run 336
+	      //Brho 7.0882 is for 40Ca setting at TH4MU1
+	      Beta_S2_Cave = 462.837731 / (toff -1318.258541); // ToFCalib
 	      Gamma_S2_Cave = 1. / (TMath::Sqrt(1. - (Beta_S2_Cave) * (Beta_S2_Cave)));
-	      Brho_S2_Cave = 9.048 * (1 + xs2 / 726.); //+mwpc0x/10./2000);
+	      Brho_S2_Cave = 7.0882 * (1 + xs2 / 726.); //+mwpc0x/10./2000);
 	      fh2_Aqvsq->Fill(Brho_S2_Cave / (3.10716 * Gamma_S2_Cave * Beta_S2_Cave), MusicZ);
+	      //
+	      Beta_S2_S8 = 279.088230 / (Tof_wTref_S2_S8 -694.519095); // ToFCalib
+	      Gamma_S2_S8 = 1. / (TMath::Sqrt(1. - (Beta_S2_S8) * (Beta_S2_S8)));
+	      Brho_S2_S8 = 7.0882 * (1 + xs2 / 726.); //+mwpc0x/10./2000);
+	      //fh2_Aqvsq->Fill(Brho_S2_S8 / (3.10716 * Gamma_S2_S8 * Beta_S2_S8), MusicZ);
+	      //
+	      Beta_S8_Cave = 183.845298 / (Tof_wTref_S8_Cave -623.62812); // ToFCalib
+	      Gamma_S8_Cave = 1. / (TMath::Sqrt(1. - (Beta_S8_Cave) * (Beta_S8_Cave)));
+	      Brho_S8_Cave = 7.0882 * (1 + xs2 / 726.); //+mwpc0x/10./2000);
+	      //fh2_Aqvsq->Fill(Brho_S8_Cave / (3.10716 * Gamma_S8_Cave * Beta_S8_Cave), MusicZ);
+	      //
+	      fh2_Beta_Correlation[0]->Fill(Beta_S2_Cave,Beta_S2_S8);
+	      fh2_Beta_Correlation[1]->Fill(Beta_S2_S8,Beta_S8_Cave);
+	      fh2_Beta_Correlation[2]->Fill(Beta_S8_Cave,Beta_S2_Cave);
 	    }
 	}
         // Get cal data MWPC0
@@ -724,6 +791,11 @@ void R3BSofSciOnlineSpectra::FinishTask()
 	      cSciRawTof_FromS8[i]->Write();
 	    }
         }
+	cBeta_Correlation -> Write();
+	for(Int_t i = 0; i < 3; i++){
+	  fh2_Beta_Correlation[i]->Write();
+	}
+	  
         if (fMusHitItems)
         {
             for (UShort_t d = 0; d < fNbDetectors; d++)
