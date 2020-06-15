@@ -88,11 +88,12 @@ class R3BSofSciOnlineSpectra : public FairTask
     void SetNbChannels(Int_t nchs) {fNbChannels = nchs;}
     void SetIdS2(Int_t id) {fIdS2 = id;}
     void SetIdS8(Int_t id) {fIdS8 = id;}
+    void SetBrho0(Double_t brho) {fBrho0 = brho;}
     Int_t GetNbDetectors() {return fNbDetectors;}
     Int_t GetNbChannels() {return fNbChannels;}
     Int_t GetIdS2() {return fIdS2;}
     Int_t GetIdS8() {return fIdS8;}
-
+    Double_t GetBrho0() {return fBrho0;}
 
   private:
     TClonesArray* fMappedItemsSci;     /**< Array with mapped items. */
@@ -107,6 +108,7 @@ class R3BSofSciOnlineSpectra : public FairTask
     Int_t fNbChannels;
     Int_t fIdS2;
     Int_t fIdS8;
+    Double_t fBrho0;  //Brho setting in FRS S2-S8
 
     // check for trigger should be done globablly (somewhere else)
     R3BEventHeader* header; /**< Event header.      */
@@ -123,6 +125,7 @@ class R3BSofSciOnlineSpectra : public FairTask
     TCanvas** cSciRawTof_FromS8;       // [fNbDetectors];
     TCanvas** cMusicZvsRawTof_FromS8;  // [fNbDetectors];
     TCanvas*  cBeta_Correlation;
+    TCanvas*  cAqvsx2;
     TCanvas*  cAqvsq;
 
     // Histograms for Mapped data : Fine Time and Mult
@@ -148,8 +151,9 @@ class R3BSofSciOnlineSpectra : public FairTask
     TH2F*  fh2_MusDTvsRawPos;
     TH2F** fh2_MusZvsRawTof_FromS2;   //[fNbDetectors];
     TH2F** fh2_MusZvsRawTof_FromS8;   //[fNbDetectors];
+    TH2F*  fh2_Aqvsx2;
     TH2F*  fh2_Aqvsq;
-
+    
     // Histogram for correlation with Mwpc0
     TH2F*  fh2_Mwpc0vsRawPos;
 

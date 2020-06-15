@@ -72,6 +72,7 @@ R3BSofSciOnlineSpectra::R3BSofSciOnlineSpectra(const char* name, Int_t iVerbose)
     , fNbChannels(3)
     , fIdS2(0)
     , fIdS8(0)
+    , fBrho0(7.1175) //For 40Ca setting in s467
 {
 }
 
@@ -416,6 +417,19 @@ InitStatus R3BSofSciOnlineSpectra::Init()
       fh2_Aqvsq->GetYaxis()->SetLabelSize(0.045);
       fh2_Aqvsq->GetYaxis()->SetTitleSize(0.045);
       fh2_Aqvsq->Draw("colz");
+      //fh2_Aqvsx2
+      cAqvsx2 = new TCanvas("FRS_AoverQ_vs_X2", "A/q versus X2 2D", 10, 10, 800, 700);
+      fh2_Aqvsx2 = new TH2F("fh2_Aq_vs_X2_frs", "FRS: A/q vs X2", 3000, 1., 3, 1300, -120,120);
+      fh2_Aqvsx2->GetXaxis()->SetTitle("A/q");
+      fh2_Aqvsx2->GetYaxis()->SetTitle("X S2 [mm]");
+      fh2_Aqvsx2->GetYaxis()->SetTitleOffset(1.1);
+      fh2_Aqvsx2->GetXaxis()->CenterTitle(true);
+      fh2_Aqvsx2->GetYaxis()->CenterTitle(true);
+      fh2_Aqvsx2->GetXaxis()->SetLabelSize(0.045);
+      fh2_Aqvsx2->GetXaxis()->SetTitleSize(0.045);
+      fh2_Aqvsx2->GetYaxis()->SetLabelSize(0.045);
+      fh2_Aqvsx2->GetYaxis()->SetTitleSize(0.045);
+      fh2_Aqvsx2->Draw("colz");
     }
 
     // --- --------------- --- //
@@ -590,6 +604,8 @@ void R3BSofSciOnlineSpectra::Exec(Option_t* option)
         double Tof_wTref_S2_S8 = -10000., Beta_S2_S8, Gamma_S2_S8, Brho_S2_S8;
         double Tof_wTref_S8_Cave = -10000., Beta_S8_Cave, Gamma_S8_Cave, Brho_S8_Cave;
         double slope_calib = -5.8; // only for the s467, for S2 SofSci 
+	//Brho 7.0882 is for 40Ca setting at TH4MU1
+	//double Brho0 = 7.1175; //Brho setting in FRS S2-S8
 	Int_t d,t;
         if (fSingleTcalItemsSci)
         {
@@ -624,20 +640,21 @@ void R3BSofSciOnlineSpectra::Exec(Option_t* option)
 
 	    if (MusicZ > 0 && xs2!=-10000. && toff!=-10000.) {
 	      //Beta_S2_Cave = 15424.3 / (toff + 675. - 1922.) / 29.9999; // After run 336
-	      //Brho 7.0882 is for 40Ca setting at TH4MU1
 	      Beta_S2_Cave = 462.837731 / (toff -1318.258541); // ToFCalib
 	      Gamma_S2_Cave = 1. / (TMath::Sqrt(1. - (Beta_S2_Cave) * (Beta_S2_Cave)));
-	      Brho_S2_Cave = 7.0882 * (1 + xs2 / 726.); //+mwpc0x/10./2000);
-	      fh2_Aqvsq->Fill(Brho_S2_Cave / (3.10716 * Gamma_S2_Cave * Beta_S2_Cave), MusicZ);
+	      Brho_S2_Cave = fBrho0 * (1 + xs2 / 726.); //+mwpc0x/10./2000);
+	      //fh2_Aqvsq->Fill(Brho_S2_Cave / (3.10716 * Gamma_S2_Cave * Beta_S2_Cave), MusicZ);
 	      //
 	      Beta_S2_S8 = 279.088230 / (Tof_wTref_S2_S8 -694.519095); // ToFCalib
 	      Gamma_S2_S8 = 1. / (TMath::Sqrt(1. - (Beta_S2_S8) * (Beta_S2_S8)));
-	      Brho_S2_S8 = 7.0882 * (1 + xs2 / 726.); //+mwpc0x/10./2000);
-	      //fh2_Aqvsq->Fill(Brho_S2_S8 / (3.10716 * Gamma_S2_S8 * Beta_S2_S8), MusicZ);
+	      Brho_S2_S8 = fBrho0 * (1 + xs2 / 726.); //+mwpc0x/10./2000);
+	      // Use this for the first check
+	      fh2_Aqvsq->Fill(Brho_S2_S8 / (3.10716 * Gamma_S2_S8 * Beta_S2_S8), MusicZ);
+	      fh2_Aqvsx2->Fill(Brho_S2_S8 / (3.10716 * Gamma_S2_S8 * Beta_S2_S8), xs2);
 	      //
 	      Beta_S8_Cave = 183.845298 / (Tof_wTref_S8_Cave -623.62812); // ToFCalib
 	      Gamma_S8_Cave = 1. / (TMath::Sqrt(1. - (Beta_S8_Cave) * (Beta_S8_Cave)));
-	      Brho_S8_Cave = 7.0882 * (1 + xs2 / 726.); //+mwpc0x/10./2000);
+	      Brho_S8_Cave = fBrho0 * (1 + xs2 / 726.); //+mwpc0x/10./2000);
 	      //fh2_Aqvsq->Fill(Brho_S8_Cave / (3.10716 * Gamma_S8_Cave * Beta_S8_Cave), MusicZ);
 	      //
 	      fh2_Beta_Correlation[0]->Fill(Beta_S2_Cave,Beta_S2_S8);
@@ -815,6 +832,8 @@ void R3BSofSciOnlineSpectra::FinishTask()
 	  cAqvsq->Write();
 	  fh2_Aqvsq->Write();
 	}
+	cAqvsx2->Write();
+	fh2_Aqvsx2->Write();
     }
 }
 
