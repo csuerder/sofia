@@ -447,9 +447,9 @@ InitStatus R3BSofSciOnlineSpectra::Init()
 
     // === MUSIC calibration === //
     cMusicEvsBeta = new TCanvas("R3BMUSICE_vs_Beta", "R3B MUSIC E versus Beta", 10, 10, 800, 700);
-    fh2_MusEvsBeta = new TH2F("fh2_MusEvsBeta", "Ene R3B MUSIC vs Beta", 3000, 0., 1., 3000, 0., 100.);
-    fh2_MusEvsBeta->GetXaxis()->SetTitle("Beta");
-    fh2_MusEvsBeta->GetYaxis()->SetTitle("Beta #times #sqrt{E}");
+    fh2_MusEvsBeta = new TH2F("fh2_MusEvsBeta", "Energy R3B MUSIC vs Beta", 3000, 0., 1., 3000, 0., 100.);
+    fh2_MusEvsBeta->GetXaxis()->SetTitle("#beta");
+    fh2_MusEvsBeta->GetYaxis()->SetTitle("#beta #times #sqrt{E}");
     fh2_MusEvsBeta->GetYaxis()->SetTitleOffset(1.1);
     fh2_MusEvsBeta->GetXaxis()->CenterTitle(true);
     fh2_MusEvsBeta->GetYaxis()->CenterTitle(true);
