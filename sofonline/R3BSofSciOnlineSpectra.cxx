@@ -11,6 +11,7 @@
 #include "R3BEventHeader.h"
 #include "R3BMusicCalData.h"
 #include "R3BMusicHitData.h"
+#include "R3BMusicHitPar.h"
 #include "R3BSofMwpcCalData.h"
 #include "R3BSofSciCalData.h"
 #include "R3BSofSciMappedData.h"
@@ -147,6 +148,48 @@ InitStatus R3BSofSciOnlineSpectra::Init()
     fMusCalItems = (TClonesArray*)mgr->GetObject("MusicCalData");
     if (!fMusCalItems)
         LOG(WARNING) << "R3BSofSciOnlineSpectra: MusicCalData not found";
+
+    // Reading MusicCalPar from FairRuntimeDb
+    FairRuntimeDb* rtdb = FairRuntimeDb::instance();
+    if (!rtdb)
+    {
+        LOG(ERROR) << "FairRuntimeDb not opened!";
+    }
+
+    R3BMusicHitPar* fCal_Par;      /**< Parameter container. >*/
+    fCal_Par = (R3BMusicHitPar*)rtdb->getContainer("musicHitPar");
+    if (!fCal_Par)
+    {
+        LOG(ERROR) << "R3BMusicCal2HitPar::Init() Couldn't get handle on musicHitPar container";
+    }
+    else
+    {
+        LOG(INFO) << "R3BMusicCal2HitPar:: musicHitPar container open";
+    }
+        //--- Parameter Container ---
+    fNumAnodes = fCal_Par->GetNumAnodes(); // Number of anodes
+    fNumParams = fCal_Par->GetNumParZFit(); // Number of Parameters
+    LOG(INFO) << "R3BMusicCal2Hit: Nb parameters for charge-Z: " << fNumParams;
+    CalZParams = new TArrayF();
+    CalZParams->Set(fNumParams);
+    CalZParams = fCal_Par->GetZHitPar(); // Array with the Cal parameters
+
+    // Parameters detector
+    if (fNumParams == 2)
+    {
+        fZ0 = CalZParams->GetAt(0);
+        fZ1 = CalZParams->GetAt(1);
+    }
+    else if (fNumParams == 3)
+    {
+        fZ0 = CalZParams->GetAt(0);
+        fZ1 = CalZParams->GetAt(1);
+        fZ2 = CalZParams->GetAt(2);
+    }
+    else
+        LOG(INFO) << "R3BMusicCal2Hit parameters for charge-Z cannot be used here, number of parameters: "
+                  << fNumParams;
+    // getting parameters for R3BMUSIC end
 
     // get access to cal data of the MWPC0
     fCalItemsMwpc0 = (TClonesArray*)mgr->GetObject("Mwpc0CalData");
@@ -401,12 +444,26 @@ InitStatus R3BSofSciOnlineSpectra::Init()
       fh2_Beta_Correlation[i]->GetYaxis()->SetTitleSize(0.045);
       fh2_Beta_Correlation[i]->Draw("colz");
     }
+
+    // === MUSIC calibration === //
+    cMusicEvsBeta = new TCanvas("R3BMUSICE_vs_Beta", "R3B MUSIC E versus Beta", 10, 10, 800, 700);
+    fh2_MusEvsBeta = new TH2F("fh2_MusEvsBeta", "Ene R3B MUSIC vs Beta", 3000, 0., 1., 3000, 0., 100.);
+    fh2_MusEvsBeta->GetXaxis()->SetTitle("Beta");
+    fh2_MusEvsBeta->GetYaxis()->SetTitle("Beta #times #sqrt{E}");
+    fh2_MusEvsBeta->GetYaxis()->SetTitleOffset(1.1);
+    fh2_MusEvsBeta->GetXaxis()->CenterTitle(true);
+    fh2_MusEvsBeta->GetYaxis()->CenterTitle(true);
+    fh2_MusEvsBeta->GetXaxis()->SetLabelSize(0.045);
+    fh2_MusEvsBeta->GetXaxis()->SetTitleSize(0.045);
+    fh2_MusEvsBeta->GetYaxis()->SetLabelSize(0.045);
+    fh2_MusEvsBeta->GetYaxis()->SetTitleSize(0.045);
+    fh2_MusEvsBeta->Draw("colz");
     
     
     // === HIT DATA AoverQ VERSUS Q === //
     if(fIdS2>0){
       cAqvsq = new TCanvas("FRSv_AoverQ_vs_Q", "A/q versus q 2D", 10, 10, 800, 700);
-      fh2_Aqvsq = new TH2F("fh2v_Aq_vs_q_frs", "FRS: A/q vs q", 3000, 1., 3, 1300, 8, 39.5);
+      fh2_Aqvsq = new TH2F("fh2v_Aq_vs_q_frs", "FRS: A/q vs q", 3000, 1., 3, 2500, 0, 50.5);
       fh2_Aqvsq->GetXaxis()->SetTitle("A/q");
       fh2_Aqvsq->GetYaxis()->SetTitle("Z [Charge units]");
       fh2_Aqvsq->GetYaxis()->SetTitleOffset(1.1);
@@ -453,7 +510,13 @@ InitStatus R3BSofSciOnlineSpectra::Init()
         if(fIdS2>0) mainfolID->Add(cMusicZvsRawTof_FromS2[d]);
         if(fIdS8>0) mainfolID->Add(cMusicZvsRawTof_FromS8[d]);
     }
-    if (fIdS2>0) mainfolID->Add(cAqvsq);
+    if (fIdS2>0){
+      mainfolID->Add(cMusicEvsBeta);
+      mainfolID->Add(cBeta_Correlation);
+      mainfolID->Add(cAqvsq);
+      mainfolID->Add(cAqvsx2);
+    }
+    
     run->AddObject(mainfolID);
 
     // Register command to reset histograms
@@ -486,6 +549,9 @@ void R3BSofSciOnlineSpectra::Reset_Histo()
 	  fh1_RawTof_FromS2_AtSingleTcal_wTref[i]->Reset();
 	  // === R3BMUSIC === //
 	  fh2_MusZvsRawTof_FromS2[i]->Reset();
+	  fh2_MusEvsBeta->Reset();
+	  fh2_Aqvsx2->Reset();
+	  fh2_Aqvsq->Reset();
 	}
 	if(fIdS8>0){
 	  // === RAW TIME_OF_FLIGHT === //
@@ -532,7 +598,7 @@ void R3BSofSciOnlineSpectra::Exec(Option_t* option)
     // --- -------------- --- //
     // --- MUSIC Hit data --- //
     // --- -------------- --- //
-    Double_t MusicZ = 0.;
+    Double_t MusicZ = 0., MusicE = 0., MusicZfixed = 0.;
     Double_t MusicDT = -1000000.;
     if (fMusHitItems && fMusHitItems->GetEntriesFast() > 0)
     {
@@ -542,7 +608,8 @@ void R3BSofSciOnlineSpectra::Exec(Option_t* option)
             R3BMusicHitData* hit = (R3BMusicHitData*)fMusHitItems->At(ihit);
             if (!hit)
                 continue;
-            MusicZ = hit->GetZcharge();
+            MusicE = hit->GetEave();
+	    MusicZ = hit->GetZcharge();
         }
     }
 
@@ -621,7 +688,7 @@ void R3BSofSciOnlineSpectra::Exec(Option_t* option)
 		if (d == fIdS2-1)         xs2 = hitsingletcal->GetRawPosNs() * slope_calib;
 		if ((d == fNbDetectors-1) && (fIdS2>0)) toff = hitsingletcal->GetRawTofNs_FromS2();
 		//if ((d == fNbDetectors-1) && (fIdS8>0)) toff = hitsingletcal->GetRawTofNs_FromS8(); //for S8
-		if (MusicZ > 0) {
+		if (MusicZ > 0) { 
 		  fh2_MusZvsRawPos[d]->Fill(hitsingletcal->GetRawPosNs(), MusicZ);
 		  if (fIdS2>0) fh2_MusZvsRawTof_FromS2[d]->Fill(hitsingletcal->GetRawTofNs_FromS2(), MusicZ);
 		  if (fIdS8>0) fh2_MusZvsRawTof_FromS8[d]->Fill(hitsingletcal->GetRawTofNs_FromS8(), MusicZ);
@@ -649,8 +716,11 @@ void R3BSofSciOnlineSpectra::Exec(Option_t* option)
 	      Gamma_S2_S8 = 1. / (TMath::Sqrt(1. - (Beta_S2_S8) * (Beta_S2_S8)));
 	      Brho_S2_S8 = fBrho0 * (1 + xs2 / 726.); //+mwpc0x/10./2000);
 	      // Use this for the first check
-	      fh2_Aqvsq->Fill(Brho_S2_S8 / (3.10716 * Gamma_S2_S8 * Beta_S2_S8), MusicZ);
-	      fh2_Aqvsx2->Fill(Brho_S2_S8 / (3.10716 * Gamma_S2_S8 * Beta_S2_S8), xs2);
+	      fh2_MusEvsBeta->Fill(Beta_S2_S8, TMath::Sqrt(MusicE) * Beta_S2_S8);
+	      MusicZfixed = fZ0 + fZ1 * TMath::Sqrt(MusicE) * Beta_S2_S8
+		+ fZ2 * MusicE * Beta_S2_S8 * Beta_S2_S8;// mostly first order
+	      fh2_Aqvsq->Fill(Brho_S2_S8 / (3.10716 * Gamma_S2_S8 * Beta_S2_S8), MusicZfixed); 
+	      fh2_Aqvsx2->Fill(fBrho0 / (3.10716 * Gamma_S2_S8 * Beta_S2_S8), xs2);
 	      //
 	      Beta_S8_Cave = 183.845298 / (Tof_wTref_S8_Cave -623.62812); // ToFCalib
 	      Gamma_S8_Cave = 1. / (TMath::Sqrt(1. - (Beta_S8_Cave) * (Beta_S8_Cave)));
@@ -829,6 +899,8 @@ void R3BSofSciOnlineSpectra::FinishTask()
         if (fCalItemsMwpc0)
             fh2_Mwpc0vsRawPos->Write();
 	if (fMusCalItems&&fIdS2>0){
+	  cMusicEvsBeta->Write();
+	  fh2_MusEvsBeta->Write();
 	  cAqvsq->Write();
 	  fh2_Aqvsq->Write();
 	}

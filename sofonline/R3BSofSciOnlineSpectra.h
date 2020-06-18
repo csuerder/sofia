@@ -109,6 +109,11 @@ class R3BSofSciOnlineSpectra : public FairTask
     Int_t fIdS2;
     Int_t fIdS8;
     Double_t fBrho0;  //Brho setting in FRS S2-S8
+    
+    Int_t fNumAnodes;
+    Int_t fNumParams;
+    Float_t fZ0, fZ1, fZ2; // CalibPar for R3BMUSIC
+    TArrayF* CalZParams;
 
     // check for trigger should be done globablly (somewhere else)
     R3BEventHeader* header; /**< Event header.      */
@@ -124,6 +129,7 @@ class R3BSofSciOnlineSpectra : public FairTask
     TCanvas** cMusicZvsRawTof_FromS2;  // [fNbDetectors];
     TCanvas** cSciRawTof_FromS8;       // [fNbDetectors];
     TCanvas** cMusicZvsRawTof_FromS8;  // [fNbDetectors];
+    TCanvas*  cMusicEvsBeta;
     TCanvas*  cBeta_Correlation;
     TCanvas*  cAqvsx2;
     TCanvas*  cAqvsq;
@@ -151,6 +157,7 @@ class R3BSofSciOnlineSpectra : public FairTask
     TH2F*  fh2_MusDTvsRawPos;
     TH2F** fh2_MusZvsRawTof_FromS2;   //[fNbDetectors];
     TH2F** fh2_MusZvsRawTof_FromS8;   //[fNbDetectors];
+    TH2F*  fh2_MusEvsBeta;
     TH2F*  fh2_Aqvsx2;
     TH2F*  fh2_Aqvsq;
     
