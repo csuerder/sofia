@@ -201,7 +201,7 @@ void R3BSofTwimvsMusicOnlineSpectra::Exec(Option_t* option)
             theta2 = hit->GetTheta() * 1000.; // mrad
         }
         // Fill histograms
-        fh2_hit_e->Fill(e1, e2);
+        fh2_hit_e->Fill(TMath::Sqrt(e1), TMath::Sqrt(e2));
         fh2_hit_z->Fill(z1, z2);
         fh2_hit_theta->Fill(theta1, theta2);
     }
