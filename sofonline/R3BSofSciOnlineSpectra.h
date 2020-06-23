@@ -101,6 +101,7 @@ class R3BSofSciOnlineSpectra : public FairTask
     TClonesArray* fSingleTcalItemsSci; /**< Array with tcal items. */
     TClonesArray* fMusHitItems;        /**< Array with MUSIC Hit items. */
     TClonesArray* fMusCalItems;        /**< Array with MUSIC Cal items. */
+    TClonesArray* fTwimHitItems;        /**< Array with Twim Hit items. */
     TClonesArray* fCalItemsMwpc0;      /**< Array with cal items of mwpc0. */
     TClonesArray* fTofwHitData;
     
@@ -109,11 +110,14 @@ class R3BSofSciOnlineSpectra : public FairTask
     Int_t fIdS2;
     Int_t fIdS8;
     Double_t fBrho0;  //Brho setting in FRS S2-S8
-    
+
+    Int_t fNumSec;
     Int_t fNumAnodes;
     Int_t fNumParams;
-    Float_t fZ0, fZ1, fZ2; // CalibPar for R3BMUSIC
+    Float_t fZ0 = 0., fZ1 = 0. , fZ2 = 0.; // CalibPar for R3BMUSIC
     TArrayF* CalZParams;
+    Float_t fTwimZ0 = 0., fTwimZ1 = 0., fTwimZ2 = 0.; // CalibPar for Twim
+    TArrayF* TwimCalZParams;
 
     // check for trigger should be done globablly (somewhere else)
     R3BEventHeader* header; /**< Event header.      */
@@ -130,6 +134,7 @@ class R3BSofSciOnlineSpectra : public FairTask
     TCanvas** cSciRawTof_FromS8;       // [fNbDetectors];
     TCanvas** cMusicZvsRawTof_FromS8;  // [fNbDetectors];
     TCanvas*  cMusicEvsBeta;
+    TCanvas*  cTwimvsMusicZ_betacorrected;
     TCanvas*  cBeta_Correlation;
     TCanvas*  cAqvsx2;
     TCanvas*  cAqvsq;
@@ -157,6 +162,7 @@ class R3BSofSciOnlineSpectra : public FairTask
     TH2F*  fh2_MusDTvsRawPos;
     TH2F** fh2_MusZvsRawTof_FromS2;   //[fNbDetectors];
     TH2F** fh2_MusZvsRawTof_FromS8;   //[fNbDetectors];
+    TH2F*  fh2_TwimvsMusicZ_betacorrected;
     TH2F*  fh2_MusEvsBeta;
     TH2F*  fh2_Aqvsx2;
     TH2F*  fh2_Aqvsq;
