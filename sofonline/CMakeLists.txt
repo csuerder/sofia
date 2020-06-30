@@ -47,6 +47,7 @@ R3BSofTwimOnlineSpectra.cxx
 R3BSofSciOnlineSpectra.cxx
 R3BSofTofWOnlineSpectra.cxx
 R3BSofFrsOnlineSpectra.cxx
+R3BSofFrsFillTree.cxx
 R3BSofTwimvsMusicOnlineSpectra.cxx
 R3BAmsCorrelationOnlineSpectra.cxx
 R3BSofTrackingOnlineSpectra.cxx

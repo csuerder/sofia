@@ -346,7 +346,8 @@ InitStatus R3BSofOnlineSpectra::Init()
     fh1_wrs[1] = new TH1F("fh1_WR_Sofia_Califa_Messel", "", 1200, -4100, 4100);
     fh1_wrs[1]->SetLineColor(4);
     fh1_wrs[1]->SetLineWidth(3);
-    fh1_wrs[1]->Draw("same");
+    if(fWRItemsCalifa)
+      fh1_wrs[1]->Draw("same");
     fh1_wrs[2] = new TH1F("fh1_WR_Sofia_Neuland", "", 1200, -4100, 4100);
     fh1_wrs[2]->SetLineColor(3);
     fh1_wrs[2]->SetLineWidth(3);
@@ -637,10 +638,10 @@ void R3BSofOnlineSpectra::FinishTask()
 {
     // Write trigger canvas in the root file
     cTrigger->Write();
-    if (fWRItemsMaster && fWRItemsSofia)
+    if (fWRItemsMaster && fWRItemsSofia){
         cWr->Write();
-    if (fWRItemsCalifa && fWRItemsSofia)
-        cWrs->Write();
+	cWrs->Write();
+    }
 }
 
 ClassImp(R3BSofOnlineSpectra)
