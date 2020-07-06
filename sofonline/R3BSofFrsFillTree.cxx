@@ -290,9 +290,9 @@ InitStatus R3BSofFrsFillTree::Init()
     // --- variables while looping over the data --- //
     // --- ------------------------------------ --- //
     // SofSci Mapped data
-    multMapSci = new UShort_t[fNbDetectors * fNbChannels];
+    multMapSci = new UChar_t[fNbDetectors * fNbChannels];
     // SofSci Tcal data
-    iRawTimeNs = new Double_t[fNbDetectors * fNbChannels];
+    iRawTimeNs = new Float_t[fNbDetectors * fNbChannels];
 
 
     // --- ------------------------------- --- //
@@ -305,10 +305,12 @@ InitStatus R3BSofFrsFillTree::Init()
     FrsTree -> Branch("MusicZ", &MusicZ);
     FrsTree -> Branch("TwimE", &TwimE);
     FrsTree -> Branch("TwimZ", &TwimZ);
-    FrsTree -> Branch("fNbDetectors", &fNbDetectors);
-    FrsTree -> Branch("fNbChannels", &fNbChannels);
-    FrsTree -> Branch("multMapSci", multMapSci, "multMapSci/b[fNbDetectors*fNbChannels]");
-    FrsTree -> Branch("iRawTimeNs", iRawTimeNs, "iRawTimeNs/D[fNbDetectors*fNbChannels]");
+    //FrsTree -> Branch("fNbDetectors", &fNbDetectors);
+    //FrsTree -> Branch("fNbChannels", &fNbChannels);
+    //FrsTree -> Branch("multMapSci", multMapSci, "multMapSci[fNbDetectors*fNbChannels]/b");
+    //FrsTree -> Branch("iRawTimeNs", iRawTimeNs, "iRawTimeNs[fNbDetectors*fNbChannels]/F");
+    FrsTree -> Branch("multMapSci", multMapSci, "multMapSci[12]/b");
+    FrsTree -> Branch("iRawTimeNs", iRawTimeNs, "iRawTimeNs[12]/F");
     FrsTree -> Branch("xs2", &xs2);
     //FrsTree -> Branch("toff", &toff);
     FrsTree -> Branch("Tof_wTref_S2_Cave", &Tof_wTref_S2_Cave);
@@ -720,14 +722,16 @@ void R3BSofFrsFillTree::Reset_Histo()
 
 void R3BSofFrsFillTree::Exec(Option_t* option)
 {
-  FairRootManager* mgr = FairRootManager::Instance();
+    fNEvents += 1;
+    //
+    FairRootManager* mgr = FairRootManager::Instance();
     if (NULL == mgr)
         LOG(FATAL) << "R3BSofFrsFillTree::Exec FairRootManager not found";
 
     Int_t nHits;
     UShort_t iDet; // 0-bsed
     UShort_t iCh;  // 0-based
-    double TheBeta, TheGamma, TheBrho;
+    Float_t TheBeta, TheGamma, TheBrho;
 
     // --- -------------- --- //
     // --- initialisation --- //
@@ -768,7 +772,9 @@ void R3BSofFrsFillTree::Exec(Option_t* option)
 	    TwimE = Twimhit->GetEave();
 	  }
       }
-	
+
+    if(MusicE< 0 && TwimE<0) return; // End this event to reduce output root file size
+    
     // --- -------------- --- //
     // --- MUSIC Cal data --- //
     // --- -------------- --- //
@@ -962,7 +968,6 @@ void R3BSofFrsFillTree::Exec(Option_t* option)
   */
     }
 
-    fNEvents += 1;
     //
     FrsTree->Fill();
 }
@@ -991,7 +996,7 @@ void R3BSofFrsFillTree::FinishEvent()
   //Init branch values
   MusicZ = -10000., MusicE = -10000.;
   MusicDT = -1000000.;
-  TwimE = -10000., TwimZ =10000.;
+  TwimE = -10000., TwimZ = -10000.;
   xs2 = -10000.;
   //toff = -10000.;
   Tof_wTref_S2_Cave = -10000., Beta_S2_Cave = -10000., Gamma_S2_Cave = -10000., Brho_S2_Cave = -10000.;

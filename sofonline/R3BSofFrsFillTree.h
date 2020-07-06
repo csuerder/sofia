@@ -87,16 +87,16 @@ class R3BSofFrsFillTree : public FairTask
     /** Virtual method Reset **/
     virtual void Reset();
 
-    void SetNbDetectors(Int_t ndets) {fNbDetectors = ndets;}
-    void SetNbChannels(Int_t nchs) {fNbChannels = nchs;}
-    void SetIdS2(Int_t id) {fIdS2 = id;}
-    void SetIdS8(Int_t id) {fIdS8 = id;}
+    void SetNbDetectors(UChar_t ndets) {fNbDetectors = ndets;}
+    void SetNbChannels(UChar_t nchs) {fNbChannels = nchs;}
+    void SetIdS2(UChar_t id) {fIdS2 = id;}
+    void SetIdS8(UChar_t id) {fIdS8 = id;}
     void SetBrho0(Double_t brho) {fBrho0 = brho;}
     void SetS2Coef(Double_t S2Sci0, Double_t S2Sci1) {fS2SciCoef0 = S2Sci0; fS2SciCoef1 = S2Sci1;}
-    Int_t GetNbDetectors() {return fNbDetectors;}
-    Int_t GetNbChannels() {return fNbChannels;}
-    Int_t GetIdS2() {return fIdS2;}
-    Int_t GetIdS8() {return fIdS8;}
+    UChar_t GetNbDetectors() {return fNbDetectors;}
+    UChar_t GetNbChannels() {return fNbChannels;}
+    UChar_t GetIdS2() {return fIdS2;}
+    UChar_t GetIdS8() {return fIdS8;}
     Double_t GetBrho0() {return fBrho0;}
     Double_t GetS2Coef0() {return fS2SciCoef0;}
     Double_t GetS2Coef1() {return fS2SciCoef1;}
@@ -111,17 +111,17 @@ class R3BSofFrsFillTree : public FairTask
     TClonesArray* fCalItemsMwpc0;      /**< Array with cal items of mwpc0. */
     TClonesArray* fTofwHitData;
     
-    Int_t fNbDetectors;
-    Int_t fNbChannels;
-    Int_t fIdS2;
-    Int_t fIdS8;
+    UChar_t fNbDetectors;
+    UChar_t fNbChannels;
+    UChar_t fIdS2;
+    UChar_t fIdS8;
     Double_t fBrho0;  //Brho setting in FRS S2-S8
     Double_t fS2SciCoef0, fS2SciCoef1; //slope_calib = -5.8; // only for the s467, for S2 SofSci 
 
 
-    Int_t fNumSec;
-    Int_t fNumAnodes;
-    Int_t fNumParams;
+    UChar_t fNumSec;
+    UChar_t fNumAnodes;
+    UChar_t fNumParams;
     Float_t fZ0 = 0., fZ1 = 0. , fZ2 = 0.; // CalibPar for R3BMUSIC
     TArrayF* CalZParams;
     Float_t fTwimZ0 = 0., fTwimZ1 = 0., fTwimZ2 = 0.; // CalibPar for Twim
@@ -129,21 +129,20 @@ class R3BSofFrsFillTree : public FairTask
 
     // check for trigger should be done globablly (somewhere else)
     R3BEventHeader* header; /**< Event header.      */
-    Int_t fNEvents;         /**< Event counter.     */
+    UInt_t fNEvents;         /**< Event counter.     */
 
     // Tree
     TTree* FrsTree;
-    Double_t MusicZ = -10000., MusicE = -10000.; //, MusicZ_betacorr = 0.;
-    Double_t MusicDT = -1000000.;
-    Double_t TwimE = -10000., TwimZ =10000.;
-    UShort_t* multMapSci;
-    Double_t* iRawTimeNs;
-    Double_t xs2 = -10000.;
-    //Double_t toff = -10000.;
-    double Tof_wTref_S2_Cave = -10000., Beta_S2_Cave = -10000., Gamma_S2_Cave = -10000., Brho_S2_Cave = -10000.;
-    double Tof_wTref_S2_S8 = -10000., Beta_S2_S8 = -10000., Gamma_S2_S8 = -10000., Brho_S2_S8 = -10000.;
-    double Tof_wTref_S8_Cave = -10000., Beta_S8_Cave = -10000., Gamma_S8_Cave = -10000., Brho_S8_Cave = -10000.;
-    double AoQ_S2_Cave = -10000., AoQ_S2_S8 = -10000., AoQ_S8_Cave = -10000.;
+    Float_t MusicZ = -10000., MusicE = -10000.; //, MusicZ_betacorr = 0.;
+    Float_t MusicDT = -1000000.;
+    Float_t TwimE = -10000., TwimZ = -10000.;
+    UChar_t* multMapSci;
+    Float_t* iRawTimeNs;
+    Float_t xs2 = -10000.;
+    Float_t Tof_wTref_S2_Cave = -10000., Beta_S2_Cave = -10000., Gamma_S2_Cave = -10000., Brho_S2_Cave = -10000.;
+    Float_t Tof_wTref_S2_S8 = -10000., Beta_S2_S8 = -10000., Gamma_S2_S8 = -10000., Brho_S2_S8 = -10000.;
+    Float_t Tof_wTref_S8_Cave = -10000., Beta_S8_Cave = -10000., Gamma_S8_Cave = -10000., Brho_S8_Cave = -10000.;
+    Float_t AoQ_S2_Cave = -10000., AoQ_S2_S8 = -10000., AoQ_S8_Cave = -10000.;
     
     /*
     // Canvas
