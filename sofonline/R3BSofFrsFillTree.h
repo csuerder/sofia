@@ -133,66 +133,17 @@ class R3BSofFrsFillTree : public FairTask
 
     // Tree
     TTree* FrsTree;
-    Float_t MusicZ = -10000., MusicE = -10000.; //, MusicZ_betacorr = 0.;
-    Float_t MusicDT = -1000000.;
-    Float_t TwimE = -10000., TwimZ = -10000.;
+    Float_t MusicZ = -5000., MusicE = -5000.; //, MusicZ_betacorr = 0.;
+    Float_t MusicDT = -5000.;
+    Float_t TwimE = -5000., TwimZ = -5000.;
     UChar_t* multMapSci;
     Float_t* iRawTimeNs;
-    Float_t xs2 = -10000.;
-    Float_t Tof_wTref_S2_Cave = -10000., Beta_S2_Cave = -10000., Gamma_S2_Cave = -10000., Brho_S2_Cave = -10000.;
-    Float_t Tof_wTref_S2_S8 = -10000., Beta_S2_S8 = -10000., Gamma_S2_S8 = -10000., Brho_S2_S8 = -10000.;
-    Float_t Tof_wTref_S8_Cave = -10000., Beta_S8_Cave = -10000., Gamma_S8_Cave = -10000., Brho_S8_Cave = -10000.;
-    Float_t AoQ_S2_Cave = -10000., AoQ_S2_S8 = -10000., AoQ_S8_Cave = -10000.;
-    
-    /*
-    // Canvas
-    TCanvas** cSciMult;                // [fNbDetectors];
-    TCanvas** cSciRawPos;              // [fNbDetectors];
-    TCanvas** cMusicZvsRawPos;         // [fNbDetectors];
-    TCanvas*  cMwpc0vsRawPos;
-    TCanvas*  cMusicDTvsRawPos;
-    TCanvas** cSciRawTof_FromS2;       // [fNbDetectors];
-    TCanvas** cMusicZvsRawTof_FromS2;  // [fNbDetectors];
-    TCanvas** cSciRawTof_FromS8;       // [fNbDetectors];
-    TCanvas** cMusicZvsRawTof_FromS8;  // [fNbDetectors];
-    TCanvas*  cMusicEvsBeta;
-    TCanvas*  cTwimvsMusicZ_betacorrected;
-    TCanvas*  cBeta_Correlation;
-    TCanvas*  cAqvsx2;
-    TCanvas*  cAqvsq;
-
-    // Histograms for Mapped data : Fine Time and Mult
-    TH1I** fh1_finetime;   // [fNbDetectors * NbChannels];
-    TH2I** fh2_mult;       // [fNbDetectors];
-
-    // Histograms for PosRaw Data at Tcal and SingleTcal
-    TH1F** fh1_RawPos_AtTcalMult1;  // [fNbDetectors];
-    TH1F** fh1_RawPos_AtSingleTcal; // [fNbDetectors];
-
-    TH1D** fh1_RawTof_FromS2_AtTcalMult1;        // [fNbDetectors];
-    TH1D** fh1_RawTof_FromS2_AtTcalMult1_wTref;  // [fNbDetectors];
-    TH1D** fh1_RawTof_FromS2_AtSingleTcal_wTref; // [fNbDetectors];
-
-    TH1D** fh1_RawTof_FromS8_AtTcalMult1;        // [fNbDetectors];
-    TH1D** fh1_RawTof_FromS8_AtTcalMult1_wTref;  // [fNbDetectors];
-    TH1D** fh1_RawTof_FromS8_AtSingleTcal_wTref; // [fNbDetectors];
-
-    TH2F** fh2_Beta_Correlation;
-    
-    // Histogram for correlation with R3B-Music
-    TH2F** fh2_MusZvsRawPos;          //[fNbDetectors];
-    TH2F*  fh2_MusDTvsRawPos;
-    TH2F** fh2_MusZvsRawTof_FromS2;   //[fNbDetectors];
-    TH2F** fh2_MusZvsRawTof_FromS8;   //[fNbDetectors];
-    TH2F*  fh2_TwimvsMusicZ_betacorrected;
-    TH2F*  fh2_MusEvsBeta;
-    TH2F*  fh2_Aqvsx2;
-    TH2F*  fh2_Aqvsq;
-    
-    // Histogram for correlation with Mwpc0
-    TH2F*  fh2_Mwpc0vsRawPos;
-    */
-
+    Float_t xs2 = -5000.;
+    Float_t Tof_wTref_S2_Cave = -5000., Beta_S2_Cave = -5000., Gamma_S2_Cave = -5000., Brho_S2_Cave = -5000.;
+    Float_t Tof_wTref_S2_S8 = -5000., Beta_S2_S8 = -5000., Gamma_S2_S8 = -5000., Brho_S2_S8 = -5000.;
+    Float_t Tof_wTref_S8_Cave = -5000., Beta_S8_Cave = -5000., Gamma_S8_Cave = -5000., Brho_S8_Cave = -5000.;
+    Float_t AoQ_S2_Cave = -5000., AoQ_S2_S8 = -5000., AoQ_S8_Cave = -5000.;
+    Float_t TheBeta = -5000., TheGamma = -5000., TheBrho = -5000., TheAoQ = -5000.;
 
   public:
     ClassDef(R3BSofFrsFillTree, 1)
