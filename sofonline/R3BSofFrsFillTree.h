@@ -138,7 +138,7 @@ class R3BSofFrsFillTree : public FairTask
     Float_t TwimE = -5000., TwimZ = -5000.;
     UChar_t* multMapSci;
     Float_t* iRawTimeNs;
-    Float_t xs2 = -5000.;
+    Float_t xs2 = -5000., xpos[3] = {-5000.};
     Float_t Tof_wTref_S2_Cave = -5000., Beta_S2_Cave = -5000., Gamma_S2_Cave = -5000., Brho_S2_Cave = -5000.;
     Float_t Tof_wTref_S2_S8 = -5000., Beta_S2_S8 = -5000., Gamma_S2_S8 = -5000., Brho_S2_S8 = -5000.;
     Float_t Tof_wTref_S8_Cave = -5000., Beta_S8_Cave = -5000., Gamma_S8_Cave = -5000., Brho_S8_Cave = -5000.;

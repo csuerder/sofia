@@ -310,6 +310,7 @@ InitStatus R3BSofFrsFillTree::Init()
     FrsTree -> Branch("multMapSci", multMapSci, "multMapSci[12]/b");
     FrsTree -> Branch("iRawTimeNs", iRawTimeNs, "iRawTimeNs[12]/F");
     FrsTree -> Branch("xs2", &xs2);
+    FrsTree -> Branch("xpos", xpos, "xpos[3]/F");
     //
     FrsTree -> Branch("TheBeta", &TheBeta);
     FrsTree -> Branch("TheBrho", &TheBrho);
@@ -454,6 +455,7 @@ void R3BSofFrsFillTree::Exec(Option_t* option)
                 if (!hitsingletcal)   continue;
 		d = hitsingletcal->GetDetector()-1;
 		if (d == fIdS2-1)         xs2 = hitsingletcal->GetRawPosNs() * fS2SciCoef1 + fS2SciCoef0;
+		if (d > 0) xpos[d-1] = hitsingletcal->GetRawPosNs();
 		if(fIdS2>0&&fIdS8>0){
 		  if(d==2) Tof_wTref_S2_S8 = hitsingletcal->GetRawTofNs_FromS2();
 		  if(d==3){
@@ -528,6 +530,7 @@ void R3BSofFrsFillTree::FinishEvent()
   MusicDT = -5000.;
   TwimE = -5000., TwimZ = -5000.;
   xs2 = -5000.;
+  xpos[0] = -5000.;  xpos[1] = -5000.;  xpos[2] = -5000.;
   //toff = -5000.;
   Tof_wTref_S2_Cave = -5000., Beta_S2_Cave = -5000., Gamma_S2_Cave = -5000., Brho_S2_Cave = -5000.;
   Tof_wTref_S2_S8 = -5000., Beta_S2_S8 = -5000., Gamma_S2_S8 = -5000., Brho_S2_S8 = -5000.;
