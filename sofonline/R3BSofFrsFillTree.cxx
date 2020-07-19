@@ -156,7 +156,7 @@ InitStatus R3BSofFrsFillTree::Init()
     FairRootManager* mgr = FairRootManager::Instance();
     if (NULL == mgr)
         LOG(FATAL) << "R3BSofFrsFillTree::Init FairRootManager not found";
-    // header = (R3BEventHeader*)mgr->GetObject("R3BEventHeader");
+    header = (R3BEventHeader*)mgr->GetObject("R3BEventHeader");
 
     //FairRunOnline* run = FairRunOnline::Instance();
     //run->GetHttpServer()->Register("", this);
@@ -347,6 +347,20 @@ void R3BSofFrsFillTree::Exec(Option_t* option)
     if (NULL == mgr)
         LOG(FATAL) << "R3BSofFrsFillTree::Exec FairRootManager not found";
 
+    //if((header->GetTpat() & 1) == 0) return; // Limiting too many events..?
+    //LOG(INFO) << fNEvents << " " << header->GetTpat();
+    /*
+    Int_t tpatbin;
+    for (Int_t i = 0; i < 16; i++)
+    {
+        tpatbin = (fEventHeader->GetTpat() & (1 << i));
+	if(i == 0 && tpatbin == 0) return;
+	//if (tpatbin != 0)
+	  //fh1_trigger->Fill(i + 1);
+    }
+    */
+    
+    
     Int_t nHits;
     UShort_t iDet; // 0-bsed
     UShort_t iCh;  // 0-based

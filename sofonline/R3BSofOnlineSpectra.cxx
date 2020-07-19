@@ -518,7 +518,8 @@ void R3BSofOnlineSpectra::Exec(Option_t* option)
 
     // fh1_trigger->Fill(fEventHeader->GetTpat());
 
-    // LOG(INFO) <<  fEventHeader->GetTpat();
+    //if (fNEvents % 10000 == 0) LOG(INFO) <<  fNEvents << " "<< fEventHeader->GetTpat();
+    //if (fNEvents % 10000 == 0) LOG(INFO) << std::bitset<16>(fEventHeader->GetTpat()) << " " << fEventHeader->GetTpat() << " " <<fNEvents;
 
     // WR data
     if (fWRItemsSofia && fWRItemsSofia->GetEntriesFast() > 0)

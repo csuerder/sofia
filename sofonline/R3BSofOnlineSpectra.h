@@ -16,6 +16,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <bitset>
 #include <sstream>
 
 class TClonesArray;
