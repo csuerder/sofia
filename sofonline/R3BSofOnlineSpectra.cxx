@@ -509,13 +509,21 @@ void R3BSofOnlineSpectra::Exec(Option_t* option)
     // Fill histogram with trigger information
 
     Int_t tpatbin;
-    for (Int_t i = 0; i < 16; i++)
-    {
-        tpatbin = (fEventHeader->GetTpat() & (1 << i));
-        if (tpatbin != 0)
+    if(fEventHeader->GetTpat()>0){
+      for (Int_t i = 0; i < 16; i++)
+	{
+	  tpatbin = (fEventHeader->GetTpat() & (1 << i));
+	  if (tpatbin != 0)
             fh1_trigger->Fill(i + 1);
+	}
+    }else if(fEventHeader->GetTpat()==0){
+      fh1_trigger->Fill(0);
+    }else if(fEventHeader->GetTpat() > 2e16){
+      fh1_trigger->Fill(16);
+    }else{
+      LOG(INFO) <<  fNEvents << " "<< fEventHeader->GetTpat();
     }
-
+    
     // fh1_trigger->Fill(fEventHeader->GetTpat());
 
     //if (fNEvents % 10000 == 0) LOG(INFO) <<  fNEvents << " "<< fEventHeader->GetTpat();

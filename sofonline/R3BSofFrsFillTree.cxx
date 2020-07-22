@@ -300,6 +300,7 @@ InitStatus R3BSofFrsFillTree::Init()
     // --- ------------------------------- --- //
     FrsTree = new TTree("FrsTree", "FrsTree");
     FrsTree -> Branch("fNEvents", &fNEvents);
+    FrsTree -> Branch("tpat", &tpat);
     FrsTree -> Branch("MusicE", &MusicE);
     //FrsTree -> Branch("MusicDT", &MusicDT);
     FrsTree -> Branch("MusicZ", &MusicZ);
@@ -347,20 +348,9 @@ void R3BSofFrsFillTree::Exec(Option_t* option)
     if (NULL == mgr)
         LOG(FATAL) << "R3BSofFrsFillTree::Exec FairRootManager not found";
 
-    //if((header->GetTpat() & 1) == 0) return; // Limiting too many events..?
-    //LOG(INFO) << fNEvents << " " << header->GetTpat();
-    /*
-    Int_t tpatbin;
-    for (Int_t i = 0; i < 16; i++)
-    {
-        tpatbin = (fEventHeader->GetTpat() & (1 << i));
-	if(i == 0 && tpatbin == 0) return;
-	//if (tpatbin != 0)
-	  //fh1_trigger->Fill(i + 1);
-    }
-    */
-    
-    
+    tpat = header->GetTpat();
+    //if((header->GetTpat() & 1) == 0) return;
+
     Int_t nHits;
     UShort_t iDet; // 0-bsed
     UShort_t iCh;  // 0-based
@@ -406,7 +396,7 @@ void R3BSofFrsFillTree::Exec(Option_t* option)
       }
 
     if(MusicE< 0 && TwimE<0) return; // End this event to reduce output root file size
-
+    
     // --- -------------- --- //
     // --- MUSIC Cal data --- //
     // --- -------------- --- //
@@ -551,6 +541,7 @@ void R3BSofFrsFillTree::FinishEvent()
   Tof_wTref_S8_Cave = -5000., Beta_S8_Cave = -5000., Gamma_S8_Cave = -5000., Brho_S8_Cave = -5000.;
   AoQ_S2_Cave = -5000., AoQ_S2_S8 = -5000., AoQ_S8_Cave = -5000.;
   TheBeta = -5000., TheGamma = -5000., TheBrho = -5000., TheAoQ = -5000.;
+  tpat = 0;
   //
   if (fMappedItemsSci)
     {
