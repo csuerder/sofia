@@ -144,7 +144,7 @@ class R3BSofFrsFillTree : public FairTask
     Float_t Tof_wTref_S8_Cave = -5000., Beta_S8_Cave = -5000., Gamma_S8_Cave = -5000., Brho_S8_Cave = -5000.;
     Float_t AoQ_S2_Cave = -5000., AoQ_S2_S8 = -5000., AoQ_S8_Cave = -5000.;
     Float_t TheBeta = -5000., TheGamma = -5000., TheBrho = -5000., TheAoQ = -5000.;
-    Int_t tpat = 0;
+    UInt_t tpat = 0, trigger = 0;
     
   public:
     ClassDef(R3BSofFrsFillTree, 1)
