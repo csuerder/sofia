@@ -244,60 +244,14 @@ void R3BSofSciTcal2SingleTcal::Exec(Option_t* option)
       UShort_t idS8 = fRawTofPar->GetDetIdS8(); // 1-based if 0: no detector at S8
       Double_t iRawTime_dSta = -100000., iRawTime_dSto = -100000., iRawTime_S2 = -100000., iRawTime_S8 = -100000.;
       Double_t iRawTof = -100000., iRawTof_S2 = -100000., iRawTof_S8 = -100000.;
-      int dSta = idS2-1, dSto=idCaveC-1;
+      Int_t  dSto=idCaveC-1; // Fix the CaveC SofSci as the stop detector
 
-      // --- first ToF selection from START at S2 to STOP at CAVE C --- //
-      /*
-      dSta = idS2-1;
-      iRawTime_S2 = -100000.;
-      for (UShort_t multRsto = 0; multRsto < mult[dSto*nChs]; multRsto++){
-	for (UShort_t multLsto = 0; multLsto < mult[dSto*nChs+1]; multLsto++){
-	  
-	  // check the position in the stop detector
-	  iRawPos = (iTraw[dSto * nChs][multRsto] - iTraw[dSto * nChs + 1][multLsto]);
-	  if ((iRawPos < fRawPosPar->GetSignalTcalParams(2*dSto)) ||
-	      (iRawPos > fRawPosPar->GetSignalTcalParams(2*dSto+1)))
-	    continue;
-
-	  for (UShort_t multRsta = 0; multRsta < mult[dSta*nChs]; multRsta++){
-	    for (UShort_t multLsta = 0; multLsta < mult[dSta*nChs+1]; multLsta++){
-	      
-	      // check the position in the start detector
-	      // RawPos = TrawRIGHT - TrawLEFT corresponds to x increasing from RIGHT to LEFT
-	      iRawPos = (iTraw[dSta*nChs][multRsta] - iTraw[dSta*nChs+1][multLsta]);
-	      if ((fRawPosPar->GetSignalTcalParams(2*dSta) > iRawPos) ||
-		  (iRawPos > fRawPosPar->GetSignalTcalParams(2*dSta+1)))
-		continue;
-	      
-	      iRawTime_dSta = 0.5 * (iTraw[dSta*nChs][multRsta] + iTraw[dSta*nChs+1][multLsta]);
-	      iRawTime_dSto = 0.5 * (iTraw[dSto*nChs][multRsto] + iTraw[dSto*nChs+1][multLsto]);
-	      iRawTof = iRawTime_dSto - iRawTime_dSta + iTraw[dSta*nChs+2][0] - iTraw[dSto*nChs+2][0];
-
-	      if ((fRawTofPar->GetSignalRawTofParams(2*dSta) <= iRawTof) &&
-		  (iRawTof <= fRawTofPar->GetSignalRawTofParams(2*dSta+1))){
-		iRawTime_S2 = iRawTime_dSta;
-		selectLeftHit[dSta] = multLsta;
-		selectRightHit[dSta] = multRsta;
-		mult_selectHits[dSta]++;
-		selectLeftHit[dSto] = multLsto;
-		selectRightHit[dSto] = multRsto;
-		mult_selectHits[dSto]++;
-	      }// end of good hit in position and ToFraw
-
-	    }// end of loop over multLsta
-	  }// end of loop over multRsta
-	}// end of loop over multLsto
-      }// end of loop over multRsto
-      */
-      // --- selection for the other scintillator versus SofSci at Cave C --- //
-      // --- only if a proper selection has been found at cave C          --- //
-      // --- in this case : fill the SingleTcalItem for all detectors     --- //
-      // if (mult_selectHits[dSto]==1){ // This is constraining the statistics as S2 will suffer with pile-up events
+      // --- selection for the scintillators along FRS versus SofSci at Cave C --- //
+      // --- only if a proper selection has been found at cave C               --- //
+      // --- in this case : fill the SingleTcalItem for all detectors          --- //
       
-      // calculate the other Tof and Pos
-      for (dSta = 0; dSta < nDets-1; dSta++){
+      for (Int_t dSta = 0; dSta < nDets-1; dSta++){
 	UShort_t multLstotmp = 0, multRstotmp=0;
-	//if (dSta==idS2-1) continue;
 	for (UShort_t multRsto = 0; multRsto < mult[dSto*nChs]; multRsto++){
 	  for (UShort_t multLsto = 0; multLsto < mult[dSto*nChs+1]; multLsto++){
 	    // check the position in the stop detector
@@ -313,7 +267,6 @@ void R3BSofSciTcal2SingleTcal::Exec(Option_t* option)
 		    (iRawPos > fRawPosPar->GetSignalTcalParams(2*dSta+1)))
 		  continue;
 		iRawTime_dSta = 0.5 * (iTraw[dSta*nChs][multRsta] + iTraw[dSta*nChs+1][multLsta]);
-		//iRawTime_dSto = 0.5 * (iTraw[dSto*nChs][selectRightHit[dSto]] + iTraw[dSto*nChs+1][selectLeftHit[dSto]]);
 		iRawTime_dSto = 0.5 * (iTraw[dSto*nChs][multRsto] + iTraw[dSto*nChs+1][multLsto]);
 		iRawTof = iRawTime_dSto - iRawTime_dSta + iTraw[dSta*nChs+2][0] - iTraw[dSto*nChs+2][0];
 		if ((fRawTofPar->GetSignalRawTofParams(2*dSta) <= iRawTof) &&
@@ -340,7 +293,6 @@ void R3BSofSciTcal2SingleTcal::Exec(Option_t* option)
       if(idS2>0)
 	if(mult_selectHits[idS2-1]==1)
 	  iRawTime_S2 = 0.5 * (iTraw[(idS2-1)*nChs][selectRightHit[idS2-1]] + iTraw[(idS2-1)*nChs+1][selectLeftHit[idS2-1]]);
-      //iRawTime_S8 = -100000.;
       if(idS8>0)
 	if(mult_selectHits[idS8-1]==1)
 	  iRawTime_S8 = 0.5 * (iTraw[(idS8-1)*nChs][selectRightHit[idS8-1]] + iTraw[(idS8-1)*nChs+1][selectLeftHit[idS8-1]]);

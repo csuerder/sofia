@@ -518,16 +518,11 @@ void R3BSofOnlineSpectra::Exec(Option_t* option)
 	}
     }else if(fEventHeader->GetTpat()==0){
       fh1_trigger->Fill(0);
-    }else if(fEventHeader->GetTpat() > 2e16){
-      fh1_trigger->Fill(16);
     }else{
       LOG(INFO) <<  fNEvents << " "<< fEventHeader->GetTpat();
     }
-    
     // fh1_trigger->Fill(fEventHeader->GetTpat());
 
-    //if (fNEvents % 10000 == 0) LOG(INFO) <<  fNEvents << " "<< fEventHeader->GetTpat();
-    //if (fNEvents % 10000 == 0) LOG(INFO) << std::bitset<16>(fEventHeader->GetTpat()) << " " << fEventHeader->GetTpat() << " " <<fNEvents;
 
     // WR data
     if (fWRItemsSofia && fWRItemsSofia->GetEntriesFast() > 0)
