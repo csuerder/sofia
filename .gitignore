@@ -6,3 +6,4 @@ core*
 *.par
 *.txt
 *.swp
+travis-clang-format-check.sh
