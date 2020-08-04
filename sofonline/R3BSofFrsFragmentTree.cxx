@@ -161,8 +161,28 @@ InitStatus R3BSofFrsFragmentTree::Init()
     if (!fCalItemsMwpc0)
         LOG(WARNING) << "R3BSofFrsFragmentTree: Mwpc0CalData not found";
 
+    // get access to cal data of the MWPC1
+    fCalItemsMwpc1 = (TClonesArray*)mgr->GetObject("Mwpc1CalData");
+    if (!fCalItemsMwpc1)
+        LOG(WARNING) << "R3BSofFrsFragmentTree: Mwpc1CalData not found";
+
+    // get access to cal data of the MWPC2
+    fCalItemsMwpc2 = (TClonesArray*)mgr->GetObject("Mwpc2CalData");
+    if (!fCalItemsMwpc2)
+        LOG(WARNING) << "R3BSofFrsFragmentTree: Mwpc2CalData not found";
+
+    // get access to cal data of the MWPC3
+    fCalItemsMwpc3 = (TClonesArray*)mgr->GetObject("Mwpc3CalData");
+    if (!fCalItemsMwpc3)
+        LOG(WARNING) << "R3BSofFrsFragmentTree: Mwpc3CalData not found";
+
+    // get access to hit data of the MWPC3
+    fHitItemsMwpc3 = (TClonesArray*)mgr->GetObject("Mwpc3HitData");
+    if (!fHitItemsMwpc3)
+        LOG(WARNING) << "R3BSofFrsFragmentTree: Mwpc3HitData not found";
+
     for (Int_t i = 0; i < 4; i++)
-        MwpcPos[i] = new TVector3(0, 0, 0);
+        MwpcPos[i] = new TVector3(0, 0, MwpcZpos[i]);
 
     // --- --------------------------------- --- //
     // --- get access to data of the MUSICs  --- //
@@ -205,6 +225,17 @@ InitStatus R3BSofFrsFragmentTree::Init()
     if (!fTofWHitData)
         LOG(WARNING) << "R3BSofFrsFragmentTree: TofWHitData not found";
     */
+
+    // --- ----------------------------------- --- //
+    // --- get access to ana data of fragments --- //
+    // --- ----------------------------------- --- //
+
+    fFragmentData = (TClonesArray*)mgr->GetObject("SofTrackingData");
+    if (!fFragmentData)
+    {
+        return kFATAL;
+    }
+
     ////////
 
     // Reading MusicCalPar from FairRuntimeDb
@@ -331,6 +362,7 @@ InitStatus R3BSofFrsFragmentTree::Init()
     Tree->Branch("Brho_S8_Cave", &Brho_S8_Cave);
     Tree->Branch("AoQ_S8_Cave", &AoQ_S8_Cave);
     //
+    Tree->Branch("MwpcPos", MwpcPos);
     // Tree -> Branch("TofW","R3BSofTofWHitData" ,&fTofWHitData);
     // Tree -> Branch("hitST", (&hitST), 300000);
     // Tree -> Branch("tofwhittcal", &tofwhittcal);
@@ -338,6 +370,13 @@ InitStatus R3BSofFrsFragmentTree::Init()
     Tree->Branch("TofWX", &TofWX);
     Tree->Branch("TofWY", &TofWY);
     Tree->Branch("TofWT", &TofWT);
+    //
+    // FragmentData
+    Tree->Branch("FragZ", &FragZ);
+    Tree->Branch("FragAoQ", &FragAoQ);
+    Tree->Branch("FragBeta", &FragBeta);
+    Tree->Branch("FragLength", &FragLength);
+    Tree->Branch("FragBrho", &FragBrho);
     return kSUCCESS;
 }
 
@@ -371,6 +410,17 @@ void R3BSofFrsFragmentTree::Exec(Option_t* option)
             iRawTimeNs[i * fNbChannels + j] = 0.;
         }
     }
+
+    ///
+    // if (fCalItemsMwpc0 && fCalItemsMwpc1 && fCalItemsMwpc2 && fCalItemsMwpc3){
+    // if(fCalItemsMwpc3->GetEntriesFast()!=1) continue;
+    /*
+    if (fHitItemsMwpc3 && fHitItemsMwpc3->GetEntriesFast() > 0)
+      {
+      R3BSofMwpcHitData* hit = (R3BSofMwpcCalData*)fHitItemsMwpc3->At(0);
+      hit->GetX();
+    }
+    */
     // --- -------------- --- //
     // --- MUSIC Hit data --- //
     // --- -------------- --- //
@@ -593,7 +643,22 @@ void R3BSofFrsFragmentTree::Exec(Option_t* option)
             } // if MusicE>0
         }
     }
-
+    //
+    if (fFragmentData && fFragmentData->GetEntriesFast() > 0)
+    {
+        nHits = fFragmentData->GetEntriesFast();
+        for (Int_t ihit = 0; ihit < nHits; ihit++)
+        {
+            R3BSofTrackingData* hit = (R3BSofTrackingData*)fFragmentData->At(ihit);
+            if (!hit)
+                continue;
+            FragZ = hit->GetZ();
+            FragAoQ = hit->GetAq();
+            FragBeta = hit->GetBeta();
+            FragLength = hit->GetLength();
+            FragBrho = hit->GetBrho();
+        }
+    }
     //
     Tree->Fill();
 }
@@ -635,6 +700,8 @@ void R3BSofFrsFragmentTree::FinishEvent()
     TofWY.clear();
     TofWT.clear();
     //
+    FragZ = -5000., FragAoQ = -5000., FragBeta = -5000., FragLength = -5000., FragBrho = -5000.;
+    //
     if (fMappedItemsSci)
     {
         fMappedItemsSci->Clear();
@@ -654,6 +721,18 @@ void R3BSofFrsFragmentTree::FinishEvent()
     if (fCalItemsMwpc0)
     {
         fCalItemsMwpc0->Clear();
+    }
+    if (fCalItemsMwpc1)
+    {
+        fCalItemsMwpc1->Clear();
+    }
+    if (fCalItemsMwpc2)
+    {
+        fCalItemsMwpc2->Clear();
+    }
+    if (fCalItemsMwpc3)
+    {
+        fCalItemsMwpc3->Clear();
     }
 }
 

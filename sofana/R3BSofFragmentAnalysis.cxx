@@ -166,9 +166,9 @@ void R3BSofFragmentAnalysis::Exec(Option_t* option)
     Int_t nHitMwpc = fMwpcHitDataCA->GetEntries();
     Int_t nHitTofW = fTofWHitDataCA->GetEntries();
     Int_t nHitTwim = fTwimHitDataCA->GetEntries();
-    // LOG(INFO) << nHitMusic << " " << nHitSci << " " << nHitMwpc ;
     if (nHitMwpc < 1 || nHitTofW < 1 || nHitTwim < 1)
         return;
+    // LOG(INFO) << "R3BSofFragmentAnalysis: nTwim: "<< nHitTwim << ", nTofW: " << nHitTofW << ", nMwpc: " << nHitMwpc ;
 
     R3BSofTofWHitData** HitTofW = new R3BSofTofWHitData*[nHitTofW];
     R3BSofTwimHitData** HitTwim = new R3BSofTwimHitData*[nHitTwim];
@@ -230,7 +230,7 @@ void R3BSofFragmentAnalysis::Exec(Option_t* option)
         // std::cout << ToF_Cave <<" "<< vel <<" "<< Length << " "<< fAq <<" "<< Brho_Cave << " "<< Beta << std::endl;
 
         // Fill the data
-        if (fZ > 1 && fAq > 1. && Brho_Cave > 0. && Beta > 0.)
+        if (true) // if (fZ > 1 && fAq > 1. && Brho_Cave > 0. && Beta > 0.)
             AddData(fZ + fOffsetZ, fAq + fOffsetAq, Beta, Length, Brho_Cave);
     }
 

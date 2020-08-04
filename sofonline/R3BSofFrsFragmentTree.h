@@ -42,6 +42,7 @@
 #include "R3BSofTofWHitData.h"
 #include "R3BSofTofWSingleTcalData.h"
 #include "R3BSofTofWTcalData.h"
+#include "R3BSofFragmentAnalysis.h"
 
 #include <array>
 #include <cstdlib>
@@ -141,9 +142,17 @@ class R3BSofFrsFragmentTree : public FairTask
     TClonesArray* fMusCalItems;        /**< Array with MUSIC Cal items. */
     TClonesArray* fTwimHitItems;        /**< Array with Twim Hit items. */
     TClonesArray* fCalItemsMwpc0;      /**< Array with cal items of mwpc0. */
+    TClonesArray* fCalItemsMwpc1;      /**< Array with cal items of mwpc1. */
+    TClonesArray* fCalItemsMwpc2;      /**< Array with cal items of mwpc2. */
+    TClonesArray* fCalItemsMwpc3;      /**< Array with cal items of mwpc3. */
+    TClonesArray* fHitItemsMwpc0;      /**< Array with cal items of mwpc0. */
+    TClonesArray* fHitItemsMwpc1;      /**< Array with cal items of mwpc1. */
+    TClonesArray* fHitItemsMwpc2;      /**< Array with cal items of mwpc2. */
+    TClonesArray* fHitItemsMwpc3;      /**< Array with cal items of mwpc3. */
     TClonesArray* fTofWHitData;
     TClonesArray* fTcalItemsTofW;
     TClonesArray* fSingleTcalItemsTofW;
+    TClonesArray* fFragmentData;
     
     UChar_t fNbDetectors;
     UChar_t fNbChannels;
@@ -192,6 +201,11 @@ class R3BSofFrsFragmentTree : public FairTask
     std::vector<Float_t> TofWX;
     std::vector<Float_t> TofWY;
     std::vector<Float_t> TofWT;
+    //
+    //Frag ana
+    Float_t FragZ = -5000., FragAoQ = -5000., FragBeta = -5000., FragLength = -5000., FragBrho = -5000.;
+
+
     
   public:
     ClassDef(R3BSofFrsFragmentTree, 1)
