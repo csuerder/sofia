@@ -212,9 +212,6 @@ InitStatus R3BSofFrsAnalysis::ReInit()
 // -----   Public method Execution   --------------------------------------------
 void R3BSofFrsAnalysis::Exec(Option_t* option)
 {
-    // Reset entries in output arrays, local arrays
-    Reset();
-
     Int_t nHitMusic = fMusicHitDataCA->GetEntries();
     Int_t nHitSci = fSingleTcalItemsSci->GetEntries();
     // Int_t nHitMwpc = fMwpcHitDataCA->GetEntries();
@@ -231,11 +228,13 @@ void R3BSofFrsAnalysis::Exec(Option_t* option)
         if (!hit)
             continue;
         // In case the MusicHitData container has several "realistic" values,
-        // it's not possible to distinguish which is the "correct" event. Thus skipping such events.
+        // it's not possible to distinguish which is the "correct" event. Thus skipping events having several hits of
+        // MusicE > 0.
         if (MusicE > 0)
             return;
         MusicE = hit->GetEave();
     }
+    LOG(DEBUG) << nHitMusic << " " << nHitSci << " " << MusicE;
     if (MusicE < 0)
         return;
 
@@ -300,6 +299,7 @@ void R3BSofFrsAnalysis::Finish() {}
 // -----   Public method Reset   ------------------------------------------------
 void R3BSofFrsAnalysis::Reset()
 {
+    LOG(DEBUG) << "FrsAnalysis Reset()";
     if (fSingleTcalItemsSci)
     {
         fSingleTcalItemsSci->Clear();
