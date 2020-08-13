@@ -36,7 +36,7 @@ class R3BSofTofW : public R3BDetector
     /** Virtual method ProcessHits
      **
      ** Defines the action to be taken when a step is inside the
-     ** active volume. Creates a R3BSofToFWPoint and adds it
+     ** active volume. Creates a R3BSofTofWPoint and adds it
      ** to the collection.
      *@param vol  Pointer to the active volume
      **/
@@ -140,7 +140,7 @@ class R3BSofTofW : public R3BDetector
                               Double_t length,
                               Double_t eLoss);
 
-    /** Adds a SofToFWCalData to the HitCollection
+    /** Adds a SofTofWCalData to the HitCollection
      **/
     R3BSofTofWCalData* AddCalHit(UShort_t ident, UShort_t pmt, Double_t time, Float_t eLoss);
 

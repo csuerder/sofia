@@ -46,7 +46,7 @@ R3BSofTofWCalData::~R3BSofTofWCalData() {}
 // -----   Public method Print   -------------------------------------------
 void R3BSofTofWCalData::Print(const Option_t* opt) const
 {
-    cout << "-I- R3BSofTofWCalData: Sofia ToFW Cal Data level for:" << endl;
+    cout << "-I- R3BSofTofWCalData: Sofia TofW Cal Data level for:" << endl;
     cout << "   fDetector " << fDetector << "  fPmt = " << fPmt << endl;
     cout << "    fTime = " << fTime << " (ns)" << endl;
     cout << "    fEnergy = " << fEnergy << " (GeV in sim)" << endl;

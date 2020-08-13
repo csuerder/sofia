@@ -126,7 +126,7 @@ Bool_t R3BSofTofWReader::Read()
             uint32_t pmtval = data->SOFTOFW_P[d].TFMI[pmmult];
             if (pmtval != data->SOFTOFW_P[d].TCMI[pmmult])
             {
-                LOG(ERROR) << "R3BSofTofWReader::Reader() mismatch in PMt id for ToFW between TF / TC "
+                LOG(ERROR) << "R3BSofTofWReader::Reader() mismatch in PMt id for TofW between TF / TC "
                            << "TF: PMT = " << data->SOFTOFW_P[d].TFMI[pmmult]
                            << "TC: PMT = " << data->SOFTOFW_P[d].TCMI[pmmult];
             }

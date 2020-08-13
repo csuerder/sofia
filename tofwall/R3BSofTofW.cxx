@@ -120,7 +120,7 @@ Bool_t R3BSofTofW::ProcessHits(FairVolume* vol)
 
         fNSteps++;
 
-        // Set additional parameters at exit of active volume. Create R3BSofToFWPoint.
+        // Set additional parameters at exit of active volume. Create R3BSofTofWPoint.
         if (gMC->IsTrackExiting() || gMC->IsTrackStop() || gMC->IsTrackDisappeared())
         {
 

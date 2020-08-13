@@ -7,11 +7,31 @@
 #ifndef R3BSofFragmentAnalysis_H
 #define R3BSofFragmentAnalysis_H
 
-#include "FairTask.h"
-#include "R3BSofTrackingData.h"
+
+// ROOT headers
+#include "TClonesArray.h"
+#include "TMath.h"
+#include "TRandom.h"
+#include "TVector3.h"
 #include "TF1.h"
 #include "TH1F.h"
+#include "TArrayF.h"
 #include <TRandom.h>
+#include <iomanip>
+
+// Fair headers
+#include "FairTask.h"
+#include "FairLogger.h"
+#include "FairRootManager.h"
+#include "FairRunAna.h"
+#include "FairRuntimeDb.h"
+
+// SOFIA headers
+#include "R3BSofMwpcHitData.h"
+#include "R3BSofTofWHitData.h"
+#include "R3BSofTrackingData.h"
+#include "R3BSofTwimHitData.h"
+#include "R3BSofTwimHitPar.h"
 
 class TClonesArray;
 
@@ -56,15 +76,21 @@ class R3BSofFragmentAnalysis : public FairTask
   private:
     void SetParameter();
 
+    // Parameters set with accessor functions
+    Double_t frho_Cave, fBfield_Glad, fTimeOffset, fTofWPos;
+    Bool_t fOnline; // Don't store data for online    
+    
+    // Parameters from par file
+    Float_t fTwimZ0 = 0., fTwimZ1 = 0., fTwimZ2 = 0.; // CalibPar for Twim
     Double_t fOffsetAq, fOffsetZ; // Offsets in A/q and Z
-
-    Double_t frho_Cave, fBfield_Glad;
     Double_t fDist_mw3_tof;
     Double_t fDist_start_glad;
-
-    Bool_t fOnline; // Don't store data for online
-
-    TClonesArray* fMwpcHitDataCA;  /**< Array with Mwpc Hit-input data. >*/
+    
+    
+    TClonesArray* fMwpc0HitDataCA;  /**< Array with Mwpc Hit-input data. >*/
+    TClonesArray* fMwpc1HitDataCA;  /**< Array with Mwpc Hit-input data. >*/
+    TClonesArray* fMwpc2HitDataCA;  /**< Array with Mwpc Hit-input data. >*/
+    TClonesArray* fMwpc3HitDataCA;  /**< Array with Mwpc Hit-input data. >*/
     TClonesArray* fTwimHitDataCA;  /**< Array with Twim Hit-input data. >*/
     TClonesArray* fTofWHitDataCA;  /**< Array with ToF Hit-input data. >*/
     TClonesArray* fTrackingDataCA; /**< Array with Tracking-output data. >*/
