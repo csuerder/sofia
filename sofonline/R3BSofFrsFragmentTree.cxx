@@ -204,7 +204,7 @@ InitStatus R3BSofFrsFragmentTree::Init()
     fHitItemsMwpc0 = (TClonesArray*)mgr->GetObject("Mwpc0HitData");
     if (!fHitItemsMwpc0)
         LOG(WARNING) << "R3BSofFrsFragmentTree: Mwpc0HitData not found";
-    
+
     fHitItemsMwpc1 = (TClonesArray*)mgr->GetObject("Mwpc1HitData");
     if (!fHitItemsMwpc1)
         LOG(WARNING) << "R3BSofFrsFragmentTree: Mwpc1HitData not found";
@@ -217,14 +217,13 @@ InitStatus R3BSofFrsFragmentTree::Init()
     if (!fHitItemsMwpc3)
         LOG(WARNING) << "R3BSofFrsFragmentTree: Mwpc3HitData not found";
 
-    
     // --- ------------------------------------ --- //
     // --- variables while looping over the data --- //
     // --- ------------------------------------ --- //
     // SofSci Mapped data
-    //multMapSci = new UChar_t[fNbDetectors * fNbChannels];
+    // multMapSci = new UChar_t[fNbDetectors * fNbChannels];
     // SofSci Tcal data
-    //iRawTimeNs = new Float_t[fNbDetectors * fNbChannels];
+    // iRawTimeNs = new Float_t[fNbDetectors * fNbChannels];
 
     // --- ------------------------------- --- //
     // ---    Create tree for detectors    --- //
@@ -234,9 +233,9 @@ InitStatus R3BSofFrsFragmentTree::Init()
     Tree->Branch("fNEvents", &fNEvents);
     Tree->Branch("tpat", &tpat);
     Tree->Branch("trigger", &trigger);
-    //Tree->Branch("MusicE", &MusicE);
+    // Tree->Branch("MusicE", &MusicE);
     Tree->Branch("MusicZ", &MusicZ);
-    //Tree->Branch("TwimE", &TwimE);
+    // Tree->Branch("TwimE", &TwimE);
     Tree->Branch("TwimZ", &TwimZ);
     Tree->Branch("xs2", &xs2);
     Tree->Branch("xpos", xpos, "xpos[3]/F");
@@ -267,7 +266,7 @@ InitStatus R3BSofFrsFragmentTree::Init()
     Tree->Branch("FragAoQ", &FragAoQ);
     Tree->Branch("FragBeta", &FragBeta);
     Tree->Branch("FragBrho", &FragBrho);
-    Tree->Branch("FragLength", &FragLength); 
+    Tree->Branch("FragLength", &FragLength);
     return kSUCCESS;
 }
 
@@ -320,9 +319,9 @@ void R3BSofFrsFragmentTree::Exec(Option_t* option)
     // --- Frs Ana data --- //
     // --- -------------- --- //
     if (fFrsData->GetEntriesFast() == 0)
-      //if (fNEvents%10000==0)
-      LOG(INFO) << fNEvents;
-      //return;
+        // if (fNEvents%10000==0)
+        LOG(INFO) << fNEvents;
+    // return;
 
     LOG(DEBUG) << "Entry" << fNEvents;
 
@@ -461,7 +460,7 @@ void R3BSofFrsFragmentTree::Exec(Option_t* option)
                 iRawTimeNs[iDet * fNbChannels + iCh] = hittcal->GetRawTimeNs();
             }
         }
-	}*/
+    }*/
 
     nHits = fFragData->GetEntriesFast();
     for (Int_t ihit = 0; ihit < nHits; ihit++)
@@ -469,13 +468,13 @@ void R3BSofFrsFragmentTree::Exec(Option_t* option)
         R3BSofTrackingData* hit = (R3BSofTrackingData*)fFragData->At(ihit);
         if (!hit)
             continue;
-	FragZ = hit -> GetZ();
-	FragAoQ = hit -> GetAq();
-	FragBeta = hit -> GetBeta();
-	FragBrho = hit -> GetBrho();
-	FragLength = hit -> GetLength();
+        FragZ = hit->GetZ();
+        FragAoQ = hit->GetAq();
+        FragBeta = hit->GetBeta();
+        FragBrho = hit->GetBrho();
+        FragLength = hit->GetLength();
     }
-    LOG(INFO)<<MusicZ<<" "<< FragZ;
+    LOG(INFO) << MusicZ << " " << FragZ;
     Tree->Fill();
 }
 
@@ -485,16 +484,16 @@ void R3BSofFrsFragmentTree::Reset() {}
 // -----   Public method Finish   -----------------------------------------------
 void R3BSofFrsFragmentTree::FinishEvent()
 {
-  /*
-    for (UShort_t i = 0; i < fNbDetectors; i++)
-    {
-        for (UShort_t j = 0; j < fNbChannels; j++)
-        {
-            multMapSci[i * fNbChannels + j] = 0;
-            iRawTimeNs[i * fNbChannels + j] = 0.;
-        }
-    }
-  */
+    /*
+      for (UShort_t i = 0; i < fNbDetectors; i++)
+      {
+          for (UShort_t j = 0; j < fNbChannels; j++)
+          {
+              multMapSci[i * fNbChannels + j] = 0;
+              iRawTimeNs[i * fNbChannels + j] = 0.;
+          }
+      }
+    */
     // Init branch values
     tpat = 0, trigger = 0;
     MusicZ = -5000., MusicE = -5000.;
@@ -530,7 +529,7 @@ void R3BSofFrsFragmentTree::FinishEvent()
     if (fMusCalItems)
     {
         fMusCalItems->Clear();
-	}*/
+    }*/
     if (fHitItemsMwpc0)
     {
         fHitItemsMwpc0->Clear();

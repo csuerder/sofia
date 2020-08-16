@@ -18,6 +18,8 @@ R3BSofFrsFillTree::R3BSofFrsFillTree()
     , fMusHitItems(NULL)
     , fMusCalItems(NULL)
     , fCalItemsMwpc0(NULL)
+    , fFrsSpill(NULL)
+    , fFrsData(NULL)
     , fNEvents(0)
     , fNbDetectors(4)
     , fNbChannels(3)
@@ -35,6 +37,8 @@ R3BSofFrsFillTree::R3BSofFrsFillTree(const char* name, Int_t iVerbose)
     , fMusHitItems(NULL)
     , fMusCalItems(NULL)
     , fCalItemsMwpc0(NULL)
+    , fFrsSpill(NULL)
+    , fFrsData(NULL)
     , fNEvents(0)
     , fNbDetectors(4)
     , fNbChannels(3)
@@ -86,6 +90,15 @@ InitStatus R3BSofFrsFillTree::Init()
     // --- ------------------------------------ --- //
     fFrsData = (TClonesArray*)mgr->GetObject("SofFrsData");
     if (!fFrsData)
+    {
+        return kFATAL;
+    }
+
+    // --- ------------------------------------ --- //
+    // --- get access to mapped data of frsspill --- //
+    // --- ------------------------------------ --- //
+    fFrsSpill = (TClonesArray*)mgr->GetObject("FrsSpillMappedData");
+    if (!fFrsSpill)
     {
         return kFATAL;
     }
@@ -268,25 +281,25 @@ void R3BSofFrsFillTree::Exec(Option_t* option)
             multMapSci[iDet * fNbChannels + iCh]++;
             // fh1_finetime[iDet * fNbChannels + iCh]->Fill(hitmapped->GetTimeFine());
         }
-	/*
-        // --- ----------------------- --- //
-        // --- loop over sci tcal data --- //
-        // --- ----------------------- --- //
-        if (fTcalItemsSci)
-        {
-            nHits = fTcalItemsSci->GetEntriesFast();
-            for (Int_t ihit = 0; ihit < nHits; ihit++)
+        /*
+            // --- ----------------------- --- //
+            // --- loop over sci tcal data --- //
+            // --- ----------------------- --- //
+            if (fTcalItemsSci)
             {
-                R3BSofSciTcalData* hittcal = (R3BSofSciTcalData*)fTcalItemsSci->At(ihit);
-                if (!hittcal)
-                    continue;
-                iDet = hittcal->GetDetector() - 1;
-                iCh = hittcal->GetPmt() - 1;
-                iRawTimeNs[iDet * fNbChannels + iCh] = hittcal->GetRawTimeNs();
-            }
-	    }*/
+                nHits = fTcalItemsSci->GetEntriesFast();
+                for (Int_t ihit = 0; ihit < nHits; ihit++)
+                {
+                    R3BSofSciTcalData* hittcal = (R3BSofSciTcalData*)fTcalItemsSci->At(ihit);
+                    if (!hittcal)
+                        continue;
+                    iDet = hittcal->GetDetector() - 1;
+                    iCh = hittcal->GetPmt() - 1;
+                    iRawTimeNs[iDet * fNbChannels + iCh] = hittcal->GetRawTimeNs();
+                }
+            }*/
     }
-    
+
     /*
     // --- -------------- --- //
     // --- MUSIC Hit data --- //
@@ -309,7 +322,7 @@ void R3BSofFrsFillTree::Exec(Option_t* option)
     // --- -------------- --- //
     // --- Frs Ana data --- //
     // --- -------------- --- //
-    //if (fFrsData->GetEntriesFast() == 0)
+    // if (fFrsData->GetEntriesFast() == 0)
     //    return;
 
     LOG(DEBUG) << "Entry" << fNEvents;
@@ -359,6 +372,20 @@ void R3BSofFrsFillTree::Exec(Option_t* option)
             LOG(WARNING) << "Sci not found. StartSciID=" << hit->GetStaId() << ", StopSciID=" << hit->GetStoId();
         }
     } // End of the loop to obtain FrsData
+
+    /// Spill data
+    nHits = fFrsSpill->GetEntriesFast();
+    for (Int_t ihit = 0; ihit < nHits; ihit++)
+    {
+        FrsSpillMappedData* hit = (FrsSpillMappedData*)fFrsSpill->At(ihit);
+        if (!hit)
+            continue;
+        if (trigger != 1)
+            LOG(INFO) << trigger << ", FrsSpill: " << ihit << ", 100k CL: " << hit->GetClock100kHz()
+                      << ", 1Hz CL: " << hit->GetClock1Hz() << ", FreeTrig: " << hit->GetFreeTrig()
+                      << ", AccTrig: " << hit->GetAccTrig();
+    }
+    ///
 
     if (Beta_S2_Cave > 0.)
     {
@@ -451,6 +478,10 @@ void R3BSofFrsFillTree::FinishEvent()
     TheBeta = -5000., TheBrho = -5000., TheAoQ = -5000.;
     tpat = 0, trigger = 0;
     //
+    if (fFrsSpill)
+    {
+        fFrsSpill->Clear();
+    }
     if (fMappedItemsSci)
     {
         fMappedItemsSci->Clear();

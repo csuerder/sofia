@@ -20,6 +20,8 @@
 #include "R3BEventHeader.h"
 #include "R3BMusicCalData.h"
 #include "R3BMusicHitData.h"
+//#include "R3BFrsMappedData.h"
+#include "FrsSpillMappedData.h"
 #include "R3BSofFrsData.h"
 #include "R3BSofMwpcCalData.h"
 #include "R3BSofSciCalData.h"
@@ -116,6 +118,7 @@ class R3BSofFrsFillTree : public FairTask
     TClonesArray* fMusCalItems;        /**< Array with MUSIC Cal items. */
     TClonesArray* fTwimHitItems;        /**< Array with Twim Hit items. */
     TClonesArray* fCalItemsMwpc0;      /**< Array with cal items of mwpc0. */
+    TClonesArray* fFrsSpill;
     TClonesArray* fFrsData;
 
     //Scintillators
