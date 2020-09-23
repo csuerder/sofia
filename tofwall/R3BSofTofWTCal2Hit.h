@@ -44,13 +44,16 @@ class R3BSofTofWTCal2Hit : public FairTask
     virtual void Finish();
 
     void SetOnline(Bool_t option) { fOnline = option; }
-
+    void SetTofLISE(Double_t tof) {Tof_lise = tof;}
+    Double_t GetTofLISE() {return Tof_lise;}
+    
   private:
     Bool_t fOnline; // Don't store data for online
 
     TClonesArray* fTCalDataCA; /**< Array with Cal input data. >*/
     TClonesArray* fHitDataCA;  /**< Array with Hit output data. >*/
-
+    Double_t Tof_lise = 43.;
+    
     /** Private method AddHitData **/
     // Adds a SofTofWHitData to the HitCollection
     R3BSofTofWHitData* AddHitData(Int_t paddle, Double_t x, Double_t y, Double_t tof);

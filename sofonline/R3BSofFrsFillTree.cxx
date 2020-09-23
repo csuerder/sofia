@@ -268,25 +268,25 @@ void R3BSofFrsFillTree::Exec(Option_t* option)
             multMapSci[iDet * fNbChannels + iCh]++;
             // fh1_finetime[iDet * fNbChannels + iCh]->Fill(hitmapped->GetTimeFine());
         }
-	/*
-        // --- ----------------------- --- //
-        // --- loop over sci tcal data --- //
-        // --- ----------------------- --- //
-        if (fTcalItemsSci)
-        {
-            nHits = fTcalItemsSci->GetEntriesFast();
-            for (Int_t ihit = 0; ihit < nHits; ihit++)
+        /*
+            // --- ----------------------- --- //
+            // --- loop over sci tcal data --- //
+            // --- ----------------------- --- //
+            if (fTcalItemsSci)
             {
-                R3BSofSciTcalData* hittcal = (R3BSofSciTcalData*)fTcalItemsSci->At(ihit);
-                if (!hittcal)
-                    continue;
-                iDet = hittcal->GetDetector() - 1;
-                iCh = hittcal->GetPmt() - 1;
-                iRawTimeNs[iDet * fNbChannels + iCh] = hittcal->GetRawTimeNs();
-            }
-	    }*/
+                nHits = fTcalItemsSci->GetEntriesFast();
+                for (Int_t ihit = 0; ihit < nHits; ihit++)
+                {
+                    R3BSofSciTcalData* hittcal = (R3BSofSciTcalData*)fTcalItemsSci->At(ihit);
+                    if (!hittcal)
+                        continue;
+                    iDet = hittcal->GetDetector() - 1;
+                    iCh = hittcal->GetPmt() - 1;
+                    iRawTimeNs[iDet * fNbChannels + iCh] = hittcal->GetRawTimeNs();
+                }
+            }*/
     }
-    
+
     /*
     // --- -------------- --- //
     // --- MUSIC Hit data --- //
@@ -309,7 +309,7 @@ void R3BSofFrsFillTree::Exec(Option_t* option)
     // --- -------------- --- //
     // --- Frs Ana data --- //
     // --- -------------- --- //
-    //if (fFrsData->GetEntriesFast() == 0)
+    // if (fFrsData->GetEntriesFast() == 0)
     //    return;
 
     LOG(DEBUG) << "Entry" << fNEvents;

@@ -19,7 +19,7 @@ R3BSofFragmentAnalysis::R3BSofFragmentAnalysis()
     , frho_Cave(0.)
     , fBfield_Glad(0.)
     , fTimeOffset(0.)
-    , fTofWPos(560.) //525: Centre
+    , fTofWPos(560.) // 525: Centre
     , fMwpc0HitDataCA(NULL)
     , fMwpc1HitDataCA(NULL)
     , fMwpc2HitDataCA(NULL)
@@ -41,7 +41,7 @@ R3BSofFragmentAnalysis::R3BSofFragmentAnalysis(const TString& name, Int_t iVerbo
     , frho_Cave(0.)
     , fBfield_Glad(0.)
     , fTimeOffset(0.)
-    , fTofWPos(560.) //525: Centre, 560: 50Ca setting in s467
+    , fTofWPos(560.) // 525: Centre, 560: 50Ca setting in s467
     , fMwpc0HitDataCA(NULL)
     , fMwpc1HitDataCA(NULL)
     , fMwpc2HitDataCA(NULL)
@@ -109,7 +109,7 @@ void R3BSofFragmentAnalysis::SetParContainers()
     Int_t fNumParams = fTwimPar->GetNumParZFit(); // Number of TwimParameters
 
     // Anodes that don't work set to zero
-    TArrayF *TwimCalZParams = new TArrayF();
+    TArrayF* TwimCalZParams = new TArrayF();
     Int_t array_size = fNumSec * fNumParams;
     TwimCalZParams->Set(array_size);
     TwimCalZParams = fTwimPar->GetZHitPar(); // Array with the Cal parameters
@@ -131,14 +131,13 @@ void R3BSofFragmentAnalysis::SetParContainers()
         else
             LOG(INFO) << "R3BSofTwimCal2Hit parameters for charge-Z cannot be used here, number of parameters: "
                       << fNumParams;
-    
 }
 
 void R3BSofFragmentAnalysis::SetParameter()
 {
     //--- Parameter Container ---
-    //frho_Cave = 7.0;
-    //fBfield_Glad = 4.0;
+    // frho_Cave = 7.0;
+    // fBfield_Glad = 4.0;
     fDist_mw3_tof = 72.0;
     fDist_start_glad = 65.5 + 163.4 + 118.;
     LOG(INFO) << "R3BSofFragmentAnalysis: Rho (Cave): " << frho_Cave;
@@ -219,9 +218,8 @@ InitStatus R3BSofFragmentAnalysis::ReInit()
 void R3BSofFragmentAnalysis::Exec(Option_t* option)
 {
     // Reset entries in output arrays, local arrays
-    Reset();
 
-    Double_t fZ = 0., fE=0., fAq = 0.;
+    Double_t fZ = 0., fE = 0., fAq = 0.;
     Double_t Beta = 0., Brho_Cave = 0., Length = 0.;
 
     Int_t nHitMwpc0 = fMwpc0HitDataCA->GetEntries();
@@ -259,8 +257,7 @@ void R3BSofFragmentAnalysis::Exec(Option_t* option)
         // std::cout <<" init: "<< HitTofW[i]->GetPaddle() << " "<< ToF_Cave << std::endl;
     }
 
-    
-    // std::cout <<" init: "<< mw3_z <<" "<< mw3_x << " "<< ToF_Cave << std::endl;
+    // std::cout << "R3BSofFragmentAnalysis: " << mw3_z << " " << mw3_x << " " << ToF_Cave ;//<< std::endl;
 
     if (ToF_Cave > 0. && mw3_z > 0. && mw3_x < 0.)
     {
@@ -275,29 +272,30 @@ void R3BSofFragmentAnalysis::Exec(Option_t* option)
         double gamma = 1. / sqrt(1. - Beta * Beta);
         fAq = Brho_Cave / (3.10716 * Beta * gamma);
 
-        // std::cout << ToF_Cave <<" "<< vel <<" "<< Length << " "<< fAq <<" "<< Brho_Cave << " "<< Beta << std::endl;
+        // std::cout << ToF_Cave << " " << vel << " " << Length << " " << fAq << " " << Brho_Cave << " " << Beta
+        //          << std::endl;
 
-	// Z from twim-music ------------------------------------
-	Double_t countz = 0;
-	for (Int_t i = 0; i < nHitTwim; i++)
-	  {
-	    HitTwim[i] = (R3BSofTwimHitData*)(fTwimHitDataCA->At(i));
-	    if (HitTwim[i]->GetZcharge() > 1)
-	      {
-		//fZ = fZ + HitTwim[i]->GetZcharge();
-		fE = fE + HitTwim[i]->GetEave();
-		countz++;
-	      }
-	  }
-	if (countz > 0)
-	  {
-	    fE = fE / countz;
-	    fZ = fTwimZ0 + fTwimZ1 * TMath::Sqrt(fE) * Beta + fTwimZ2 * fE * Beta * Beta;
-	  }
-	else
-	  {
-        fZ = 0.;
-	  }
+        // Z from twim-music ------------------------------------
+        Double_t countz = 0;
+        for (Int_t i = 0; i < nHitTwim; i++)
+        {
+            HitTwim[i] = (R3BSofTwimHitData*)(fTwimHitDataCA->At(i));
+            if (HitTwim[i]->GetZcharge() > 1)
+            {
+                // fZ = fZ + HitTwim[i]->GetZcharge();
+                fE = fE + HitTwim[i]->GetEave();
+                countz++;
+            }
+        }
+        if (countz > 0)
+        {
+            fE = fE / countz;
+            fZ = fTwimZ0 + fTwimZ1 * TMath::Sqrt(fE) * Beta + fTwimZ2 * fE * Beta * Beta;
+        }
+        else
+        {
+            fZ = 0.;
+        }
 
         // Fill the data
         if (true) // if (fZ > 1 && fAq > 1. && Brho_Cave > 0. && Beta > 0.)

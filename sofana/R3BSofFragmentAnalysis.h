@@ -54,6 +54,13 @@ class R3BSofFragmentAnalysis : public FairTask
     /** Virtual method Reset **/
     virtual void Reset();
 
+    /**
+     * A method for finish of processing of an event.
+     * Is called by the framework for each event after executing
+     * the tasks.
+     */
+    virtual void FinishEvent() {Reset();}
+
     virtual void SetParContainers();
 
     // Fair specific

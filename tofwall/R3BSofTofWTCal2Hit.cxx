@@ -60,7 +60,7 @@ R3BSofTofWTCal2Hit::R3BSofTofWTCal2Hit()
     offset_pos[26] = +0.93;
     offset_pos[27] = 0.0;
 
-    Double_t Tof_lise = 41.6; // ns
+    // Double_t Tof_lise = 41.6; // ns
 
     offset_tof[0] = Tof_lise + 37.08;
     offset_tof[1] = Tof_lise + 36.43;
@@ -128,7 +128,7 @@ R3BSofTofWTCal2Hit::R3BSofTofWTCal2Hit(const char* name, Int_t iVerbose)
     offset_pos[26] = +0.93;
     offset_pos[27] = 0.0;
 
-    Double_t Tof_lise = 43.0; // ns
+    // Double_t Tof_lise = 43.0; // ns
 
     offset_tof[0] = Tof_lise + 37.08;
     offset_tof[1] = Tof_lise + 36.43;
@@ -231,7 +231,7 @@ void R3BSofTofWTCal2Hit::Exec(Option_t* option)
             fPaddleId = calDat[i]->GetDetector();
             tofw = calDat[i]->GetRawTofNs();
             AddHitData(fPaddleId,
-                       -450. + 15. + (fPaddleId - 1) * 30.,
+                       -450. + 15. + (Double_t)(fPaddleId - 1) * 30.,
                        calDat[i]->GetRawPosNs() + offset_pos[fPaddleId - 1],
                        tofw + offset_tof[fPaddleId - 1]);
         }
