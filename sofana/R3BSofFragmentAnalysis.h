@@ -102,6 +102,13 @@ class R3BSofFragmentAnalysis : public FairTask
     TClonesArray* fTofWHitDataCA;  /**< Array with ToF Hit-input data. >*/
     TClonesArray* fTrackingDataCA; /**< Array with Tracking-output data. >*/
 
+    R3BSofTofWHitData** HitTofW;
+    R3BSofTwimHitData** HitTwim;
+    R3BSofMwpcHitData** HitMwpc0;
+    R3BSofMwpcHitData** HitMwpc1;
+    R3BSofMwpcHitData** HitMwpc2;
+    R3BSofMwpcHitData** HitMwpc3;
+
     /** Private method TrackingData **/
     //** Adds a TrackingData to the analysis
     R3BSofTrackingData* AddData(Double_t z, Double_t aq, Double_t beta, Double_t length, Double_t brho);

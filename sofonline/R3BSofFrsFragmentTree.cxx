@@ -320,8 +320,6 @@ void R3BSofFrsFragmentTree::Exec(Option_t* option)
     // --- -------------- --- //
     if (fFrsData->GetEntriesFast() == 0)
     {
-        if (fNEvents % 10000 == 0)
-            LOG(INFO) << fNEvents;
         return;
     }
 

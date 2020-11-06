@@ -215,7 +215,7 @@ void R3BSofFrsAnalysis::Exec(Option_t* option)
     Int_t nHitMusic = fMusicHitDataCA->GetEntries();
     Int_t nHitSci = fSingleTcalItemsSci->GetEntries();
     // Int_t nHitMwpc = fMwpcHitDataCA->GetEntries();
-    LOG(DEBUG) << nHitMusic << " " << nHitSci; //<< " " << nHitMwpc ;
+    // LOG(DEBUG) << nHitMusic << " " << nHitSci; //<< " " << nHitMwpc ;
     if (nHitSci < 1 || nHitMusic < 1)
         return;
 
@@ -229,12 +229,11 @@ void R3BSofFrsAnalysis::Exec(Option_t* option)
             continue;
         // In case the MusicHitData container has several "realistic" values,
         // it's not possible to distinguish which is the "correct" event. Thus skipping events having several hits of
-        // MusicE > 0.
         if (MusicE > 0)
             return;
         MusicE = hit->GetEave();
     }
-    LOG(DEBUG) << nHitMusic << " " << nHitSci << " " << MusicE;
+    // LOG(DEBUG) << nHitMusic << " " << nHitSci << " " << MusicE;
     if (MusicE < 0)
         return;
 

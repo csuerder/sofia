@@ -218,7 +218,6 @@ InitStatus R3BSofFragmentAnalysis::ReInit()
 void R3BSofFragmentAnalysis::Exec(Option_t* option)
 {
     // Reset entries in output arrays, local arrays
-
     Double_t fZ = 0., fE = 0., fAq = 0.;
     Double_t Beta = 0., Brho_Cave = 0., Length = 0.;
 
@@ -228,16 +227,16 @@ void R3BSofFragmentAnalysis::Exec(Option_t* option)
     Int_t nHitMwpc3 = fMwpc3HitDataCA->GetEntries();
     Int_t nHitTofW = fTofWHitDataCA->GetEntries();
     Int_t nHitTwim = fTwimHitDataCA->GetEntries();
+    HitTofW = new R3BSofTofWHitData*[nHitTofW];
+    HitTwim = new R3BSofTwimHitData*[nHitTwim];
+    HitMwpc0 = new R3BSofMwpcHitData*[nHitMwpc0];
+    HitMwpc1 = new R3BSofMwpcHitData*[nHitMwpc1];
+    HitMwpc2 = new R3BSofMwpcHitData*[nHitMwpc2];
+    HitMwpc3 = new R3BSofMwpcHitData*[nHitMwpc3];
+
     if (/*nHitMwpc0 < 1 || nHitMwpc1 < 1 || nHitMwpc2 < 1 ||*/ nHitMwpc3 < 1 || nHitTofW < 1 || nHitTwim < 1)
         return;
     // LOG(INFO) << "R3BSofFragmentAnalysis: nTwim: "<< nHitTwim << ", nTofW: " << nHitTofW << ", nMwpc: " << nHitMwpc ;
-
-    R3BSofTofWHitData** HitTofW = new R3BSofTofWHitData*[nHitTofW];
-    R3BSofTwimHitData** HitTwim = new R3BSofTwimHitData*[nHitTwim];
-    R3BSofMwpcHitData** HitMwpc0 = new R3BSofMwpcHitData*[nHitMwpc0];
-    R3BSofMwpcHitData** HitMwpc1 = new R3BSofMwpcHitData*[nHitMwpc1];
-    R3BSofMwpcHitData** HitMwpc2 = new R3BSofMwpcHitData*[nHitMwpc2];
-    R3BSofMwpcHitData** HitMwpc3 = new R3BSofMwpcHitData*[nHitMwpc3];
 
     // Added initial model
     Double_t ToF_Cave = 0.;
@@ -259,48 +258,53 @@ void R3BSofFragmentAnalysis::Exec(Option_t* option)
 
     // std::cout << "R3BSofFragmentAnalysis: " << mw3_z << " " << mw3_x << " " << ToF_Cave ;//<< std::endl;
 
-    if (ToF_Cave > 0. && mw3_z > 0. && mw3_x < 0.)
+    if (ToF_Cave <= 0. || mw3_z <= 0. || mw3_x >= 0.)
+        return;
+
+    v1.SetXYZ(-1. * mw3_x, 0., mw3_z);
+
+    double rho = 88.5969 / (2. * sin(v1.Theta() / 2.) * cos(14. * TMath::DegToRad() - v1.Theta() / 2.));
+    Brho_Cave = 4.0 * 0.8 * rho * 0.01;
+    Length = fDist_start_glad + sqrt(mw3_x * mw3_x + mw3_z * mw3_z) + fDist_mw3_tof;
+    double vel = Length / ToF_Cave;
+    Beta = vel / c;
+    double gamma = 1. / sqrt(1. - Beta * Beta);
+    fAq = Brho_Cave / (3.10716 * Beta * gamma);
+
+    // std::cout << ToF_Cave << " " << vel << " " << Length << " " << fAq << " " << Brho_Cave << " " << Beta
+    //          << std::endl;
+
+    // Z from twim-music ------------------------------------
+    Double_t countz = 0;
+    for (Int_t i = 0; i < nHitTwim; i++)
     {
-
-        v1.SetXYZ(-1. * mw3_x, 0., mw3_z);
-
-        double rho = 88.5969 / (2. * sin(v1.Theta() / 2.) * cos(14. * TMath::DegToRad() - v1.Theta() / 2.));
-        Brho_Cave = 4.0 * 0.8 * rho * 0.01;
-        Length = fDist_start_glad + sqrt(mw3_x * mw3_x + mw3_z * mw3_z) + fDist_mw3_tof;
-        double vel = Length / ToF_Cave;
-        Beta = vel / c;
-        double gamma = 1. / sqrt(1. - Beta * Beta);
-        fAq = Brho_Cave / (3.10716 * Beta * gamma);
-
-        // std::cout << ToF_Cave << " " << vel << " " << Length << " " << fAq << " " << Brho_Cave << " " << Beta
-        //          << std::endl;
-
-        // Z from twim-music ------------------------------------
-        Double_t countz = 0;
-        for (Int_t i = 0; i < nHitTwim; i++)
+        HitTwim[i] = (R3BSofTwimHitData*)(fTwimHitDataCA->At(i));
+        if (HitTwim[i]->GetZcharge() > 1)
         {
-            HitTwim[i] = (R3BSofTwimHitData*)(fTwimHitDataCA->At(i));
-            if (HitTwim[i]->GetZcharge() > 1)
-            {
-                // fZ = fZ + HitTwim[i]->GetZcharge();
-                fE = fE + HitTwim[i]->GetEave();
-                countz++;
-            }
+            // fZ = fZ + HitTwim[i]->GetZcharge();
+            fE = fE + HitTwim[i]->GetEave();
+            countz++;
         }
-        if (countz > 0)
-        {
-            fE = fE / countz;
-            fZ = fTwimZ0 + fTwimZ1 * TMath::Sqrt(fE) * Beta + fTwimZ2 * fE * Beta * Beta;
-        }
-        else
-        {
-            fZ = 0.;
-        }
-
-        // Fill the data
-        if (true) // if (fZ > 1 && fAq > 1. && Brho_Cave > 0. && Beta > 0.)
-            AddData(fZ + fOffsetZ, fAq + fOffsetAq, Beta, Length, Brho_Cave);
     }
+    if (countz > 0)
+    {
+        fE = fE / countz;
+        fZ = fTwimZ0 + fTwimZ1 * TMath::Sqrt(fE) * Beta + fTwimZ2 * fE * Beta * Beta;
+    }
+
+    // Fill the data
+    if (true) // if (fZ > 1 && fAq > 1. && Brho_Cave > 0. && Beta > 0.)
+        AddData(fZ + fOffsetZ, fAq + fOffsetAq, Beta, Length, Brho_Cave);
+    return;
+}
+
+// -----   Protected method Finish   --------------------------------------------
+void R3BSofFragmentAnalysis::Finish() {}
+
+// -----   Public method Reset also called by FinishEvent()   -------------------
+void R3BSofFragmentAnalysis::Reset()
+{
+    LOG(DEBUG) << "Clearing SofTrackingData Structure";
 
     if (HitTofW)
         delete HitTofW;
@@ -314,16 +318,7 @@ void R3BSofFragmentAnalysis::Exec(Option_t* option)
         delete HitMwpc3;
     if (HitTwim)
         delete HitTwim;
-    return;
-}
 
-// -----   Protected method Finish   --------------------------------------------
-void R3BSofFragmentAnalysis::Finish() {}
-
-// -----   Public method Reset   ------------------------------------------------
-void R3BSofFragmentAnalysis::Reset()
-{
-    LOG(DEBUG) << "Clearing SofTrackingData Structure";
     if (fTrackingDataCA)
         fTrackingDataCA->Clear();
 }
