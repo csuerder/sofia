@@ -24,6 +24,7 @@
 //#include "R3BMusicCalData.h"
 //#include "R3BMusicHitData.h"
 #include "R3BSofMwpcCalData.h"
+#include "R3BSofMwpcHitData.h"
 #include "R3BSofSciCalData.h"
 #include "R3BSofSciMappedData.h"
 #include "R3BSofSciSingleTcalData.h"
@@ -31,6 +32,7 @@
 #include "R3BSofTwimCalData.h"
 #include "R3BSofTwimHitData.h"
 #include "R3BSofTwimHitPar.h"
+#include "R3BSofTofWHitData.h"
 
 class TClonesArray;
 class R3BEventHeader;
@@ -118,12 +120,12 @@ class R3BSofFrsFragmentTree : public FairTask
     //TClonesArray* fSingleTcalItemsSci; /**< Array with tcal items. */
     //TClonesArray* fMusHitItems;        /**< Array with MUSIC Hit items. */
     //TClonesArray* fMusCalItems;        /**< Array with MUSIC Cal items. */
-    //TClonesArray* fTwimHitItems;        /**< Array with Twim Hit items. */
+    TClonesArray* fTwimHitItems;        /**< Array with Twim Hit items. */
     TClonesArray* fHitItemsMwpc0;
     TClonesArray* fHitItemsMwpc1;
     TClonesArray* fHitItemsMwpc2;
     TClonesArray* fHitItemsMwpc3;
-    
+    TClonesArray* fTofWHitDataCA;
 
     //Scintillators
     //UChar_t fNbDetectors;
@@ -133,15 +135,14 @@ class R3BSofFrsFragmentTree : public FairTask
     UChar_t fIdCave;
 
     //Musics
-    /*
     UChar_t fNumSec;
     UChar_t fNumAnodes;
     UChar_t fNumParams;
-    Float_t fZ0 = 0., fZ1 = 0. , fZ2 = 0.; // CalibPar for R3BMUSIC
-    TArrayF* CalZParams;
+    //Float_t fZ0 = 0., fZ1 = 0. , fZ2 = 0.; // CalibPar for R3BMUSIC
+    //TArrayF* CalZParams;
     Float_t fTwimZ0 = 0., fTwimZ1 = 0., fTwimZ2 = 0.; // CalibPar for Twim
     TArrayF* TwimCalZParams;
-    */
+    
     // check for trigger should be done globablly (somewhere else)
     R3BEventHeader* header; /**< Event header.      */
     UInt_t fNEvents;         /**< Event counter.     */
@@ -155,12 +156,15 @@ class R3BSofFrsFragmentTree : public FairTask
     UChar_t* multMapSci;
     Float_t* iRawTimeNs;
     Float_t xs2 = -5000., xpos[3] = {-5000.};
+    Float_t Mw3_X = -5000., Mw3_Y = -5000.;
+    Float_t Tofw_Tof = -5000.;
+    UChar_t Tofw_Paddle = 0;
     Float_t MusicZ_S2_Cave = -5000., Tof_wTref_S2_Cave = -5000., Beta_S2_Cave = -5000., Brho_S2_Cave = -5000.;
     Float_t MusicZ_S2_S8 = -5000., Tof_wTref_S2_S8 = -5000., Beta_S2_S8 = -5000., Brho_S2_S8 = -5000.;
     Float_t MusicZ_S8_Cave = -5000., Tof_wTref_S8_Cave = -5000., Beta_S8_Cave = -5000., Brho_S8_Cave = -5000.;
     Float_t AoQ_S2_Cave = -5000., AoQ_S2_S8 = -5000., AoQ_S8_Cave = -5000.;
-    Float_t TheBeta = -5000., TheBrho = -5000., TheAoQ = -5000.;
-    Float_t FragZ = -5000., FragAoQ = -5000., FragBeta = -5000., FragBrho = -5000., FragLength = -5000.;
+    Float_t TheBeta = -5000., TheGamma = -5000., TheBrho = -5000., TheAoQ = -5000.;
+    Float_t FragZ = -5000., FragTof = -5000., FragAoQ = -5000., FragBeta = -5000., FragBrho = -5000., FragLength = -5000.;
     
   public:
     ClassDef(R3BSofFrsFragmentTree, 1)
