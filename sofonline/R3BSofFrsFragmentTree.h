@@ -156,6 +156,9 @@ class R3BSofFrsFragmentTree : public FairTask
     UChar_t* multMapSci;
     Float_t* iRawTimeNs;
     Float_t xs2 = -5000., xpos[3] = {-5000.};
+    Float_t Mw0_X = -5000., Mw0_Y = -5000.;
+    Float_t Mw1_X = -5000., Mw1_Y = -5000.;
+    Float_t Mw2_X = -5000., Mw2_Y = -5000.;
     Float_t Mw3_X = -5000., Mw3_Y = -5000.;
     Float_t Tofw_Tof = -5000.;
     UChar_t Tofw_Paddle = 0;
