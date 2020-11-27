@@ -158,7 +158,7 @@ InitStatus R3BSofFrsFragmentTree::Init()
     if (!fMusCalItems)
         LOG(WARNING) << "R3BSofFrsFragmentTree: MusicCalData not found";
     */
-    
+
     // Twim
     fTwimHitItems = (TClonesArray*)mgr->GetObject("TwimHitData");
     if (!fTwimHitItems)
@@ -211,11 +211,11 @@ InitStatus R3BSofFrsFragmentTree::Init()
     fHitItemsMwpc1 = (TClonesArray*)mgr->GetObject("Mwpc1HitData");
     if (!fHitItemsMwpc1)
         LOG(WARNING) << "R3BSofFrsFragmentTree: Mwpc1HitData not found";
-    
+
     fHitItemsMwpc2 = (TClonesArray*)mgr->GetObject("Mwpc2HitData");
     if (!fHitItemsMwpc2)
         LOG(WARNING) << "R3BSofFrsFragmentTree: Mwpc2HitData not found";
-    
+
     fHitItemsMwpc3 = (TClonesArray*)mgr->GetObject("Mwpc3HitData");
     if (!fHitItemsMwpc3)
         LOG(WARNING) << "R3BSofFrsFragmentTree: Mwpc3HitData not found";
@@ -223,7 +223,7 @@ InitStatus R3BSofFrsFragmentTree::Init()
     fTofWHitDataCA = (TClonesArray*)mgr->GetObject("TofWHitData");
     if (!fTofWHitDataCA)
         LOG(WARNING) << "R3BSofFrsFragmentTree: TofWHitData not found";
-    
+
     // --- ------------------------------------ --- //
     // --- variables while looping over the data --- //
     // --- ------------------------------------ --- //
@@ -278,7 +278,7 @@ InitStatus R3BSofFrsFragmentTree::Init()
     Tree->Branch("Mw2_Y", &Mw2_Y);
     Tree->Branch("Mw3_X", &Mw3_X);
     Tree->Branch("Mw3_Y", &Mw3_Y);
-    //Tree->Branch("Tofw_Tof", &Tofw_Tof);
+    // Tree->Branch("Tofw_Tof", &Tofw_Tof);
     Tree->Branch("Tofw_Paddle", &Tofw_Paddle);
     //
     Tree->Branch("FragZ", &FragZ);
@@ -413,7 +413,7 @@ void R3BSofFrsFragmentTree::Exec(Option_t* option)
         MusicZ = MusicZ_S8_Cave;
     }
     TheGamma = 1. / TMath::Sqrt(1 - TheBeta * TheBeta);
-    
+
     if (fTwimHitItems && fTwimHitItems->GetEntriesFast() > 0)
     {
         nHits = fTwimHitItems->GetEntriesFast();
@@ -491,9 +491,9 @@ void R3BSofFrsFragmentTree::Exec(Option_t* option)
             auto Mwpc0hit = (R3BSofMwpcHitData*)fHitItemsMwpc0->At(ihit);
             if (!Mwpc0hit)
                 continue;
-	    Mw0_X = Mwpc0hit->GetX();
-	    Mw0_Y = Mwpc0hit->GetY();
-	}
+            Mw0_X = Mwpc0hit->GetX();
+            Mw0_Y = Mwpc0hit->GetY();
+        }
     }
 
     if (fHitItemsMwpc1 && fHitItemsMwpc1->GetEntriesFast() > 0)
@@ -504,9 +504,9 @@ void R3BSofFrsFragmentTree::Exec(Option_t* option)
             auto Mwpc1hit = (R3BSofMwpcHitData*)fHitItemsMwpc1->At(ihit);
             if (!Mwpc1hit)
                 continue;
-	    Mw1_X = Mwpc1hit->GetX();
-	    Mw1_Y = Mwpc1hit->GetY();
-	}
+            Mw1_X = Mwpc1hit->GetX();
+            Mw1_Y = Mwpc1hit->GetY();
+        }
     }
 
     if (fHitItemsMwpc2 && fHitItemsMwpc2->GetEntriesFast() > 0)
@@ -517,9 +517,9 @@ void R3BSofFrsFragmentTree::Exec(Option_t* option)
             auto Mwpc2hit = (R3BSofMwpcHitData*)fHitItemsMwpc2->At(ihit);
             if (!Mwpc2hit)
                 continue;
-	    Mw2_X = Mwpc2hit->GetX();
-	    Mw2_Y = Mwpc2hit->GetY();
-	}
+            Mw2_X = Mwpc2hit->GetX();
+            Mw2_Y = Mwpc2hit->GetY();
+        }
     }
 
     if (fHitItemsMwpc3 && fHitItemsMwpc3->GetEntriesFast() > 0)
@@ -530,11 +530,11 @@ void R3BSofFrsFragmentTree::Exec(Option_t* option)
             auto Mwpc3hit = (R3BSofMwpcHitData*)fHitItemsMwpc3->At(ihit);
             if (!Mwpc3hit)
                 continue;
-	    Mw3_X = Mwpc3hit->GetX();
-	    Mw3_Y = Mwpc3hit->GetY();
-	}
+            Mw3_X = Mwpc3hit->GetX();
+            Mw3_Y = Mwpc3hit->GetY();
+        }
     }
-
+    /*
     if (fTofWHitDataCA && fTofWHitDataCA->GetEntriesFast() > 0)
     {
         nHits = fTofWHitDataCA->GetEntriesFast();
@@ -543,12 +543,11 @@ void R3BSofFrsFragmentTree::Exec(Option_t* option)
             auto Tofwhit = (R3BSofTofWHitData*)fTofWHitDataCA->At(ihit);
             if (!Tofwhit)
                 continue;
-	    FragTof = Tofwhit->GetTime();
-	    Tofw_Paddle = Tofwhit->GetPaddle();
-	}
-    }
+            FragTof = Tofwhit->GetTime();
+            Tofw_Paddle = Tofwhit->GetPaddle();
+        }
+    }*/
 
-    
     nHits = fFragData->GetEntriesFast();
     for (Int_t ihit = 0; ihit < nHits; ihit++)
     {
@@ -560,6 +559,8 @@ void R3BSofFrsFragmentTree::Exec(Option_t* option)
         FragBeta = hit->GetBeta();
         FragBrho = hit->GetBrho();
         FragLength = hit->GetLength();
+        FragTof = FragBrho / FragBeta;
+        Tofw_Paddle = hit->GetPaddle();
     }
     // LOG(INFO) << MusicZ << " " << FragZ;
     Tree->Fill();
@@ -603,7 +604,7 @@ void R3BSofFrsFragmentTree::FinishEvent()
     AoQ_S2_Cave = -5000., AoQ_S2_S8 = -5000., AoQ_S8_Cave = -5000.;
     TheBeta = -5000., TheGamma = -5000., TheBrho = -5000., TheAoQ = -5000.;
     Tofw_Paddle = 0;
-    FragZ = -5000., FragAoQ = -5000., FragTof =-5000., FragBeta = -5000., FragBrho = -5000., FragLength = -5000.;
+    FragZ = -5000., FragAoQ = -5000., FragTof = -5000., FragBeta = -5000., FragBrho = -5000., FragLength = -5000.;
     //
     /*
     if (fMappedItemsSci)

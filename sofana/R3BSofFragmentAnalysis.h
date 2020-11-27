@@ -111,7 +111,7 @@ class R3BSofFragmentAnalysis : public FairTask
 
     /** Private method TrackingData **/
     //** Adds a TrackingData to the analysis
-    R3BSofTrackingData* AddData(Double_t z, Double_t aq, Double_t beta, Double_t length, Double_t brho);
+    R3BSofTrackingData* AddData(Double_t z, Double_t aq, Double_t beta, Double_t length, Double_t brho, Int_t paddle);
 
   public:
     // Class definition

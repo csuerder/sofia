@@ -2,22 +2,6 @@
 // -----         R3BSofTofWTCal2Hit source file                -----
 // -----    Created 15/02/20  by J.L. Rodriguez-Sanchez        -----
 // -----------------------------------------------------------------
-
-// ROOT headers
-#include "TClonesArray.h"
-#include "TMath.h"
-
-// Fair headers
-#include "FairLogger.h"
-#include "FairRootManager.h"
-#include "FairRunAna.h"
-#include "FairRuntimeDb.h"
-
-#include <iomanip>
-
-// TofW headers
-#include "R3BSofTofWHitData.h"
-#include "R3BSofTofWSingleTcalData.h"
 #include "R3BSofTofWTCal2Hit.h"
 
 // R3BSofTofWTCal2Hit: Default Constructor --------------------------
@@ -63,7 +47,6 @@ void R3BSofTofWTCal2Hit::SetParContainers()
     else
         LOG(INFO) << "R3BSofTofWTCal2Hit::SetParContainers() : tofwHitPar-Container found with "
                   << fTofWHitPar->GetNumSci() << " paddles.";
-    fTofWHitPar->printParams();
 }
 
 // -----   Public method Init   --------------------------------------------
@@ -96,7 +79,7 @@ InitStatus R3BSofTofWTCal2Hit::Init()
     {
         rootManager->Register("TofWHitData", "TofW-Hit", fHitDataCA, kFALSE);
     }
-
+    // fTofWHitPar->printParams();
     return kSUCCESS;
 }
 
@@ -115,10 +98,9 @@ void R3BSofTofWTCal2Hit::Exec(Option_t* option)
         return;
 
     // Data from cal level
-    R3BSofTofWSingleTcalData** calDat;
     calDat = new R3BSofTofWSingleTcalData*[nHits];
     Int_t fPaddleId = 0; // from 1 to 28
-    Double_t tofw = 0., posy = 0.;
+    Double_t tofw = 0., posx = 0., posy = 0., vel = 0.;
     Int_t mult = 0;
 
     for (Int_t i = 0; i < nHits; i++)
@@ -133,19 +115,26 @@ void R3BSofTofWTCal2Hit::Exec(Option_t* option)
     }
 
     if (mult == 1)
-        AddHitData(
-            fPaddleId,
-            (TofWPosition - 525.) - 14. * 30. + (Double_t)(fPaddleId - 1) * 30., // x=0 at the gap of bars 14 and 15
-            posy - fTofWHitPar->GetPosPar(fPaddleId),
-            tofw - fTofWHitPar->GetTofPar((Int_t)fPaddleId) + Tof_lise);
-
+    {
+        posx = (TofWPosition - 525.) - 14. * 30. + (Double_t)(fPaddleId - 1) * 30.; // x=0 at the gap of bars 14 and 15
+        posy = posy - fTofWHitPar->GetPosPar(fPaddleId);
+        tofw = tofw - fTofWHitPar->GetTofPar(fPaddleId) - fTofWHitPar->GetVelPar0(fPaddleId) + Tof_lise;
+        // TofPar is adjusted to align the time 0 with motor sweep runs,
+        // Tof_lise + VelPar0 is to adjust the velocity correlation with FRS with a certain setting,
+        // And the Tof_lise is to adjust the difference of the flight path from sofsci to target setting-by-setting.
+        vel = fTofWHitPar->GetVelPar1(fPaddleId) / tofw;
+        AddHitData(fPaddleId, posx, posy, tofw, 0., vel);
+    }
     if (calDat)
         delete calDat;
+
     return;
 }
 
 // -----   Public method Finish  ------------------------------------------------
 void R3BSofTofWTCal2Hit::Finish() {}
+
+void R3BSofTofWTCal2Hit::FinishEvent() {}
 
 // -----   Public method Reset   ------------------------------------------------
 void R3BSofTofWTCal2Hit::Reset()
@@ -156,12 +145,17 @@ void R3BSofTofWTCal2Hit::Reset()
 }
 
 // -----   Private method AddHitData  --------------------------------------------
-R3BSofTofWHitData* R3BSofTofWTCal2Hit::AddHitData(Int_t paddle, Double_t x, Double_t y, Double_t tof)
+R3BSofTofWHitData* R3BSofTofWTCal2Hit::AddHitData(Int_t paddle,
+                                                  Double_t x,
+                                                  Double_t y,
+                                                  Double_t tof,
+                                                  Double_t brho,
+                                                  Double_t vel)
 {
     // It fills the R3BSofTofWHitData
     TClonesArray& clref = *fHitDataCA;
     Int_t size = clref.GetEntriesFast();
-    return new (clref[size]) R3BSofTofWHitData(paddle, x, y, tof);
+    return new (clref[size]) R3BSofTofWHitData(paddle, x, y, tof, brho, vel);
 }
 
 ClassImp(R3BSofTofWTCal2Hit)

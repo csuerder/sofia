@@ -21,7 +21,8 @@ R3BSofTofWHitData::R3BSofTofWHitData(Int_t paddle, Double_t x, Double_t y, Doubl
     , fX(x)
     , fY(y)
     , fTime(time)
-    , fBrho(brho)
+    , fBrho(brho) // Reserved for the future development but in principle it's not possible to reconstruct Brho with
+                  // TofW only.
     , fvel(vel)
 {
 }

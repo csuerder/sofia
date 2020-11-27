@@ -138,10 +138,10 @@ void R3BSofFragmentAnalysis::SetParameter()
     //--- Parameter Container ---
     // frho_Cave = 7.0;
     // fBfield_Glad = 4.0;
-    fDist_mw3_tof = 72.0;
-    fDist_start_glad = 65.5 + 163.4 + 118.;
-    LOG(INFO) << "R3BSofFragmentAnalysis: Rho (Cave): " << frho_Cave;
-    LOG(INFO) << "R3BSofFragmentAnalysis: B (Cave): " << fBfield_Glad;
+    // fDist_mw3_tof = 72.0;
+    // fDist_start_glad = 65.5 + 163.4 + 118.;
+    // LOG(INFO) << "R3BSofFragmentAnalysis: Rho (Cave): " << frho_Cave;
+    // LOG(INFO) << "R3BSofFragmentAnalysis: B (Cave): " << fBfield_Glad;
 }
 
 // -----   Public method Init   --------------------------------------------
@@ -220,6 +220,10 @@ void R3BSofFragmentAnalysis::Exec(Option_t* option)
     // Reset entries in output arrays, local arrays
     Double_t fZ = 0., fE = 0., fAq = 0.;
     Double_t Beta = 0., Brho_Cave = 0., Length = 0.;
+    Double_t ToF_Cave = 0.;
+    Double_t mw3_x = 0., mw3_z = 0.;
+    Double_t mw[4][4] = { { -5000. } }; // mwpc[ID:0-4][x,y,a,b]
+    Int_t Paddle = 0;
 
     Int_t nHitMwpc0 = fMwpc0HitDataCA->GetEntries();
     Int_t nHitMwpc1 = fMwpc1HitDataCA->GetEntries();
@@ -234,40 +238,66 @@ void R3BSofFragmentAnalysis::Exec(Option_t* option)
     HitMwpc2 = new R3BSofMwpcHitData*[nHitMwpc2];
     HitMwpc3 = new R3BSofMwpcHitData*[nHitMwpc3];
 
-    if (/*nHitMwpc0 < 1 || nHitMwpc1 < 1 || nHitMwpc2 < 1 ||*/ nHitMwpc3 < 1 || nHitTofW < 1 || nHitTwim < 1)
+    if (nHitMwpc0 < 1 || nHitMwpc1 < 1 || nHitMwpc2 < 1 || nHitMwpc3 < 1 || nHitTofW < 1 || nHitTwim < 1)
         return;
     // LOG(INFO) << "R3BSofFragmentAnalysis: nTwim: "<< nHitTwim << ", nTofW: " << nHitTofW << ", nMwpc: " << nHitMwpc ;
 
-    // Added initial model
-    Double_t ToF_Cave = 0.;
-    Double_t mw3_x = 0., mw3_z = 0.;
-    // Position at Cave-C behind GLAD: MWPC3
+    for (Int_t i = 0; i < nHitMwpc1; i++)
+    {
+        HitMwpc1[i] = (R3BSofMwpcHitData*)(fMwpc1HitDataCA->At(i));
+        mw[1][0] = HitMwpc1[i]->GetX();
+        mw[1][1] = HitMwpc1[i]->GetY();
+    }
+    for (Int_t i = 0; i < nHitMwpc2; i++)
+    {
+        HitMwpc2[i] = (R3BSofMwpcHitData*)(fMwpc2HitDataCA->At(i));
+        mw[2][0] = HitMwpc2[i]->GetX();
+        mw[2][1] = HitMwpc2[i]->GetY();
+    }
+    // Calculate raw angle /mm
+    mw[1][2] = mw[2][0] - mw[1][0];
+    mw[1][3] = mw[2][1] - mw[1][1];
+    //
     for (Int_t i = 0; i < nHitMwpc3; i++)
     {
         HitMwpc3[i] = (R3BSofMwpcHitData*)(fMwpc3HitDataCA->At(i));
-        mw3_x = HitMwpc3[i]->GetX() / 10. * cos(18. * TMath::DegToRad()) - 215.4;                        // cm
-        mw3_z = 662. + HitMwpc3[i]->GetX() / 10. * sin(18. * TMath::DegToRad()) - 163.4 - fDist_mw3_tof; // cm
+        mw[3][0] = HitMwpc3[i]->GetX();
+        mw[3][1] = HitMwpc3[i]->GetY();
+        // mw3_x = HitMwpc3[i]->GetX() / 10. * cos(18. * TMath::DegToRad()) - 215.4;                        // cm
+        // mw3_z = 662. + HitMwpc3[i]->GetX() / 10. * sin(18. * TMath::DegToRad()) - 163.4 - fDist_mw3_tof; // cm
     }
+    //
+    //(Mw3_X - 107.612277 - (Mw2_X-Mw1_X) *(7.969415))+ (- 10.967255 - Mw1_X *(2.033001))+ (- 3.300145 - (Mw2_Y-Mw1_Y)
+    //*(0.076592))+ (- 1.705562 - Mw1_Y *(0.096213))
+    Double_t Dispersion_MW3 = (mw[3][0] - 107.612277 - mw[1][2] * (7.969415)) + (-10.967255 - mw[1][0] * (2.033001)) +
+                              (-3.300145 - mw[1][3] * (0.076592)) + (-1.705562 - mw[1][1] * (0.096213));
+    // 100, -2152.65, 247.966 // Temporal fit
+    Brho_Cave = (Dispersion_MW3 + 2152.65) / 247.966 + 0.3;
+
+    ////
     // Time from TofW
     for (Int_t i = 0; i < nHitTofW; i++)
     {
         HitTofW[i] = (R3BSofTofWHitData*)(fTofWHitDataCA->At(i));
         ToF_Cave = HitTofW[i]->GetTime();
+        Beta = HitTofW[i]->GetVel();
+        Length = Beta * ToF_Cave * 2.998e2; // in mm. 0th order approx. To be modified later.
+        Paddle = HitTofW[i]->GetPaddle();
         // std::cout <<" init: "<< HitTofW[i]->GetPaddle() << " "<< ToF_Cave << std::endl;
     }
 
     // std::cout << "R3BSofFragmentAnalysis: " << mw3_z << " " << mw3_x << " " << ToF_Cave ;//<< std::endl;
 
-    if (ToF_Cave <= 0. || mw3_z <= 0. || mw3_x >= 0.)
+    if (ToF_Cave <= 0.) // || mw3_z <= 0. || mw3_x >= 0.)
         return;
 
     v1.SetXYZ(-1. * mw3_x, 0., mw3_z);
 
-    double rho = 88.5969 / (2. * sin(v1.Theta() / 2.) * cos(14. * TMath::DegToRad() - v1.Theta() / 2.));
-    Brho_Cave = 4.0 * 0.8 * rho * 0.01;
-    Length = fDist_start_glad + sqrt(mw3_x * mw3_x + mw3_z * mw3_z) + fDist_mw3_tof;
-    double vel = Length / ToF_Cave;
-    Beta = vel / c;
+    // double rho = 88.5969 / (2. * sin(v1.Theta() / 2.) * cos(14. * TMath::DegToRad() - v1.Theta() / 2.));
+    // Brho_Cave = 4.0 * 0.8 * rho * 0.01;
+    // Length = fDist_start_glad + sqrt(mw3_x * mw3_x + mw3_z * mw3_z) + fDist_mw3_tof;
+    // double vel = Length / ToF_Cave;
+    // Beta = vel / c;
     double gamma = 1. / sqrt(1. - Beta * Beta);
     fAq = Brho_Cave / (3.10716 * Beta * gamma);
 
@@ -294,7 +324,7 @@ void R3BSofFragmentAnalysis::Exec(Option_t* option)
 
     // Fill the data
     if (true) // if (fZ > 1 && fAq > 1. && Brho_Cave > 0. && Beta > 0.)
-        AddData(fZ + fOffsetZ, fAq + fOffsetAq, Beta, Length, Brho_Cave);
+        AddData(fZ + fOffsetZ, fAq + fOffsetAq, Beta, Length, Brho_Cave, Paddle);
     return;
 }
 
@@ -328,10 +358,11 @@ R3BSofTrackingData* R3BSofFragmentAnalysis::AddData(Double_t z,
                                                     Double_t aq,
                                                     Double_t beta,
                                                     Double_t length,
-                                                    Double_t brho)
+                                                    Double_t brho,
+                                                    Int_t paddle)
 {
     // It fills the R3BSofTrackingData
     TClonesArray& clref = *fTrackingDataCA;
     Int_t size = clref.GetEntriesFast();
-    return new (clref[size]) R3BSofTrackingData(z, aq, beta, length, brho);
+    return new (clref[size]) R3BSofTrackingData(z, aq, beta, length, brho, paddle);
 }
