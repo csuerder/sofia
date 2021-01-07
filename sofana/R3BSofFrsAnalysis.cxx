@@ -228,7 +228,7 @@ void R3BSofFrsAnalysis::Exec(Option_t* option)
         if (!hit)
             continue;
         // In case the MusicHitData container has several "realistic" values,
-        // it's not possible to distinguish which is the "correct" event. Thus skipping events having several hits of
+        // it's not possible to distinguish which is the "correct" event. Thus skipping events having several hits.
         if (MusicE > 0)
             return;
         MusicE = hit->GetEave();

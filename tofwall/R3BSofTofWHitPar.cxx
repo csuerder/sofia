@@ -137,7 +137,6 @@ void R3BSofTofWHitPar::printParams()
     {
 
         LOG(INFO) << "Sci " << s + 1 << " in use " << fIn_use->GetAt(s) << ", Position: " << fSci_pos->GetAt(s)
-                  << ", Tof: " << fSci_tof->GetAt(s) << ", Vel0: " << fSci_vel0->GetAt(s)
-                  << ", Vel1: " << fSci_vel1->GetAt(s);
+                  << ", Tof: " << fSci_tof->GetAt(s);
     }
 }
