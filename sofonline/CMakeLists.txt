@@ -9,12 +9,14 @@ set(INCLUDE_DIRECTORIES
 ${R3BROOT_SOURCE_DIR}/r3bbase
 ${R3BROOT_SOURCE_DIR}/r3bdata
 ${R3BROOT_SOURCE_DIR}/music
+#${R3BROOT_SOURCE_DIR}/frs/frsdata
 ${R3BROOT_SOURCE_DIR}/r3bdata/musicData
 ${R3BROOT_SOURCE_DIR}/r3bdata/amsData
 ${R3BROOT_SOURCE_DIR}/r3bdata/califaData
 ${R3BROOT_SOURCE_DIR}/r3bdata/wrData
 ${R3BROOT_SOURCE_DIR}/tracker/unpackams
 ${R3BROOT_SOURCE_DIR}/califa/ana
+${R3BSOF_SOURCE_DIR}/twim
 ${R3BSOF_SOURCE_DIR}/sofdata
 ${R3BSOF_SOURCE_DIR}/sofdata/atData
 ${R3BSOF_SOURCE_DIR}/sofdata/mwpcData
@@ -26,6 +28,7 @@ ${R3BSOF_SOURCE_DIR}/sofdata/frsData
 ${R3BSOF_SOURCE_DIR}/sofdata/trackingData
 ${R3BSOF_SOURCE_DIR}/sofdata/scalersData
 ${R3BSOF_SOURCE_DIR}/sofonline
+${R3BSOF_SOURCE_DIR}/sofana
 )
 
 include_directories( ${INCLUDE_DIRECTORIES})
@@ -46,6 +49,8 @@ R3BSofTwimOnlineSpectra.cxx
 R3BSofSciOnlineSpectra.cxx
 R3BSofTofWOnlineSpectra.cxx
 R3BSofFrsOnlineSpectra.cxx
+R3BSofFrsFillTree.cxx
+R3BSofFrsFragmentTree.cxx
 R3BSofTwimvsMusicOnlineSpectra.cxx
 R3BAmsCorrelationOnlineSpectra.cxx
 R3BSofTrackingOnlineSpectra.cxx

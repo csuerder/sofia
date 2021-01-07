@@ -11,11 +11,15 @@
 #include "R3BEventHeader.h"
 #include "R3BMusicCalData.h"
 #include "R3BMusicHitData.h"
+#include "R3BMusicHitPar.h"
 #include "R3BSofMwpcCalData.h"
 #include "R3BSofSciCalData.h"
 #include "R3BSofSciMappedData.h"
 #include "R3BSofSciSingleTcalData.h"
 #include "R3BSofSciTcalData.h"
+#include "R3BSofTwimCalData.h"
+#include "R3BSofTwimHitData.h"
+#include "R3BSofTwimHitPar.h"
 #include "THttpServer.h"
 
 #include "FairLogger.h"
@@ -72,6 +76,7 @@ R3BSofSciOnlineSpectra::R3BSofSciOnlineSpectra(const char* name, Int_t iVerbose)
     , fNbChannels(3)
     , fIdS2(0)
     , fIdS8(0)
+    , fBrho0(7.1175) // For 40Ca setting in s467
 {
 }
 
@@ -86,6 +91,8 @@ R3BSofSciOnlineSpectra::~R3BSofSciOnlineSpectra()
         delete fSingleTcalItemsSci;
     if (fMusHitItems)
         delete fMusHitItems;
+    if (fTwimHitItems)
+        delete fTwimHitItems;
     if (fMusCalItems)
         delete fMusCalItems;
     if (fCalItemsMwpc0)
@@ -146,6 +153,88 @@ InitStatus R3BSofSciOnlineSpectra::Init()
     fMusCalItems = (TClonesArray*)mgr->GetObject("MusicCalData");
     if (!fMusCalItems)
         LOG(WARNING) << "R3BSofSciOnlineSpectra: MusicCalData not found";
+
+    // Reading MusicCalPar from FairRuntimeDb
+    FairRuntimeDb* rtdb = FairRuntimeDb::instance();
+    if (!rtdb)
+    {
+        LOG(ERROR) << "FairRuntimeDb not opened!";
+    }
+
+    R3BMusicHitPar* fCal_Par; /**< Parameter container. >*/
+    fCal_Par = (R3BMusicHitPar*)rtdb->getContainer("musicHitPar");
+    if (!fCal_Par)
+    {
+        LOG(ERROR) << "R3BMusicCal2HitPar::Init() Couldn't get handle on musicHitPar container";
+    }
+    else
+    {
+        LOG(INFO) << "R3BMusicCal2HitPar:: musicHitPar container open";
+    }
+    //--- Parameter Container ---
+    fNumAnodes = fCal_Par->GetNumAnodes();  // Number of anodes
+    fNumParams = fCal_Par->GetNumParZFit(); // Number of Parameters
+    LOG(INFO) << "R3BMusicCal2Hit: Nb parameters for charge-Z: " << fNumParams;
+    CalZParams = new TArrayF();
+    CalZParams->Set(fNumParams);
+    CalZParams = fCal_Par->GetZHitPar(); // Array with the Cal parameters
+
+    // Parameters detector
+    if (fNumParams == 2)
+    {
+        fZ0 = CalZParams->GetAt(0);
+        fZ1 = CalZParams->GetAt(1);
+    }
+    else if (fNumParams == 3)
+    {
+        fZ0 = CalZParams->GetAt(0);
+        fZ1 = CalZParams->GetAt(1);
+        fZ2 = CalZParams->GetAt(2);
+    }
+    else
+        LOG(INFO) << "R3BMusicCal2Hit parameters for charge-Z cannot be used here, number of parameters: "
+                  << fNumParams;
+    // getting parameters for R3BMUSIC end
+
+    // Twim
+    fTwimHitItems = (TClonesArray*)mgr->GetObject("TwimHitData");
+    if (!fTwimHitItems)
+        LOG(WARNING) << "R3BSofSciOnlineSpectra: TwimHitData not found";
+
+    R3BSofTwimHitPar* fCal_TwimPar = (R3BSofTwimHitPar*)rtdb->getContainer("twimHitPar");
+    if (!fCal_TwimPar)
+    {
+        LOG(ERROR) << "R3BSofTwimCal2HitPar::Init() Couldn't get handle on twimHitPar container";
+    }
+    //--- Parameter Container ---
+    fNumSec = fCal_TwimPar->GetNumSec();        // Number of Sections
+    fNumAnodes = fCal_TwimPar->GetNumAnodes();  // Number of anodes
+    fNumParams = fCal_TwimPar->GetNumParZFit(); // Number of TwimParameters
+
+    // Anodes that don't work set to zero
+    TwimCalZParams = new TArrayF();
+    Int_t array_size = fNumSec * fNumParams;
+    TwimCalZParams->Set(array_size);
+    TwimCalZParams = fCal_TwimPar->GetZHitPar(); // Array with the Cal parameters
+
+    // Parameters detector
+    for (Int_t s = 0; s < fNumSec; s++)
+        // Parameters detector
+        if (fNumParams == 2)
+        {
+            fTwimZ0 = TwimCalZParams->GetAt(0);
+            fTwimZ1 = TwimCalZParams->GetAt(1);
+        }
+        else if (fNumParams == 3)
+        {
+            fTwimZ0 = TwimCalZParams->GetAt(0);
+            fTwimZ1 = TwimCalZParams->GetAt(1);
+            fTwimZ2 = TwimCalZParams->GetAt(2);
+        }
+        else
+            LOG(INFO) << "R3BSofTwimCal2Hit parameters for charge-Z cannot be used here, number of parameters: "
+                      << fNumParams;
+    // Twim end
 
     // get access to cal data of the MWPC0
     fCalItemsMwpc0 = (TClonesArray*)mgr->GetObject("Mwpc0CalData");
@@ -280,6 +369,9 @@ InitStatus R3BSofSciOnlineSpectra::Init()
     fh1_RawTof_FromS8_AtTcalMult1 = new TH1D*[fNbDetectors];
     fh1_RawTof_FromS8_AtTcalMult1_wTref = new TH1D*[fNbDetectors];
     fh1_RawTof_FromS8_AtSingleTcal_wTref = new TH1D*[fNbDetectors];
+    fh2_Beta_Correlation =
+        new TH2F*[fNbDetectors * (fNbDetectors - 1) * (fNbDetectors * (fNbDetectors - 1) / 2 - 1) / 4];
+    //
     cMusicZvsRawTof_FromS8 = new TCanvas*[fNbDetectors];
     fh2_MusZvsRawTof_FromS8 = new TH2F*[fNbDetectors];
     for (Int_t dstop = 0; dstop < fNbDetectors; dstop++)
@@ -371,12 +463,79 @@ InitStatus R3BSofSciOnlineSpectra::Init()
             fh2_MusZvsRawTof_FromS8[dstop]->Draw("colz");
         }
     }
+    // Beta comparison
+    sprintf(Name1, "Beta_correlation");
+    cBeta_Correlation = new TCanvas(Name1, Name1, 10, 10, 800, 800);
+    cBeta_Correlation->Divide(2, 2);
+
+    char Name3[255];
+    sprintf(Name1, "S2-CaveC");
+    sprintf(Name2, "S2-S8");
+    sprintf(Name3, "%s_vs_%s", Name1, Name2);
+    fh2_Beta_Correlation[0] = new TH2F(Name3, Name3, 300, 0.6, 0.9, 300, 0.6, 0.9);
+    fh2_Beta_Correlation[0]->GetXaxis()->SetTitle(Name1);
+    fh2_Beta_Correlation[0]->GetYaxis()->SetTitle(Name2);
+
+    sprintf(Name1, "S2-S8");
+    sprintf(Name2, "S8-CaveC");
+    sprintf(Name3, "%s_vs_%s", Name1, Name2);
+    fh2_Beta_Correlation[1] = new TH2F(Name3, Name3, 300, 0.6, 0.9, 300, 0.6, 0.9);
+    fh2_Beta_Correlation[1]->GetXaxis()->SetTitle(Name1);
+    fh2_Beta_Correlation[1]->GetYaxis()->SetTitle(Name2);
+
+    sprintf(Name1, "S8-CaveC");
+    sprintf(Name2, "S2-CaveC");
+    sprintf(Name3, "%s_vs_%s", Name1, Name2);
+    fh2_Beta_Correlation[2] = new TH2F(Name3, Name3, 300, 0.6, 0.9, 300, 0.6, 0.9);
+    fh2_Beta_Correlation[2]->GetXaxis()->SetTitle(Name1);
+    fh2_Beta_Correlation[2]->GetYaxis()->SetTitle(Name2);
+
+    for (Int_t i = 0; i < 3; i++)
+    {
+        cBeta_Correlation->cd(i + 1);
+        fh2_Beta_Correlation[i]->GetYaxis()->SetTitleOffset(1.1);
+        fh2_Beta_Correlation[i]->GetXaxis()->CenterTitle(true);
+        fh2_Beta_Correlation[i]->GetYaxis()->CenterTitle(true);
+        fh2_Beta_Correlation[i]->GetXaxis()->SetLabelSize(0.045);
+        fh2_Beta_Correlation[i]->GetXaxis()->SetTitleSize(0.045);
+        fh2_Beta_Correlation[i]->GetYaxis()->SetLabelSize(0.045);
+        fh2_Beta_Correlation[i]->GetYaxis()->SetTitleSize(0.045);
+        fh2_Beta_Correlation[i]->Draw("colz");
+    }
+
+    // === MUSIC calibration === //
+    cMusicEvsBeta = new TCanvas("R3BMUSICE_vs_Beta", "R3B MUSIC E versus Beta", 10, 10, 800, 700);
+    fh2_MusEvsBeta = new TH2F("fh2_MusEvsBeta", "Energy R3B MUSIC vs Beta", 3000, 0., 1., 3000, 0., 100.);
+    fh2_MusEvsBeta->GetXaxis()->SetTitle("#beta");
+    fh2_MusEvsBeta->GetYaxis()->SetTitle("#beta #times #sqrt{E}");
+    fh2_MusEvsBeta->GetYaxis()->SetTitleOffset(1.1);
+    fh2_MusEvsBeta->GetXaxis()->CenterTitle(true);
+    fh2_MusEvsBeta->GetYaxis()->CenterTitle(true);
+    fh2_MusEvsBeta->GetXaxis()->SetLabelSize(0.045);
+    fh2_MusEvsBeta->GetXaxis()->SetTitleSize(0.045);
+    fh2_MusEvsBeta->GetYaxis()->SetLabelSize(0.045);
+    fh2_MusEvsBeta->GetYaxis()->SetTitleSize(0.045);
+    fh2_MusEvsBeta->Draw("colz");
+    cTwimvsMusicZ_betacorrected =
+        new TCanvas("TwimvsMusicZ_betacorrected", "Beta corrected Z correlation between two MUSICs", 10, 10, 800, 700);
+    fh2_TwimvsMusicZ_betacorrected =
+        new TH2F("fh2_TwimvsMusicZ_betacorrected", "Twim vs Music: Beta corrected charge Z", 1000, 6, 38, 1000, 6, 38);
+    fh2_TwimvsMusicZ_betacorrected->GetXaxis()->SetTitle("Music charge (Z)");
+    fh2_TwimvsMusicZ_betacorrected->GetYaxis()->SetTitle("Twim charge (Z)");
+    fh2_TwimvsMusicZ_betacorrected->GetYaxis()->SetTitleOffset(1.1);
+    fh2_TwimvsMusicZ_betacorrected->GetXaxis()->CenterTitle(true);
+    fh2_TwimvsMusicZ_betacorrected->GetYaxis()->CenterTitle(true);
+    fh2_TwimvsMusicZ_betacorrected->GetXaxis()->SetLabelSize(0.045);
+    fh2_TwimvsMusicZ_betacorrected->GetXaxis()->SetTitleSize(0.045);
+    fh2_TwimvsMusicZ_betacorrected->GetYaxis()->SetLabelSize(0.045);
+    fh2_TwimvsMusicZ_betacorrected->GetYaxis()->SetTitleSize(0.045);
+    fh2_TwimvsMusicZ_betacorrected->Draw("colz");
 
     // === HIT DATA AoverQ VERSUS Q === //
     if (fIdS2 > 0)
     {
         cAqvsq = new TCanvas("FRSv_AoverQ_vs_Q", "A/q versus q 2D", 10, 10, 800, 700);
-        fh2_Aqvsq = new TH2F("fh2v_Aq_vs_q_frs", "FRS: A/q vs q", 3000, 1., 3, 1300, 8, 39.5);
+        fh2_Aqvsq = new TH2F("fh2v_Aq_vs_q_frs", "FRS: A/q vs q", 3000, 1., 3, 2500, 0, 50.5);
         fh2_Aqvsq->GetXaxis()->SetTitle("A/q");
         fh2_Aqvsq->GetYaxis()->SetTitle("Z [Charge units]");
         fh2_Aqvsq->GetYaxis()->SetTitleOffset(1.1);
@@ -387,6 +546,19 @@ InitStatus R3BSofSciOnlineSpectra::Init()
         fh2_Aqvsq->GetYaxis()->SetLabelSize(0.045);
         fh2_Aqvsq->GetYaxis()->SetTitleSize(0.045);
         fh2_Aqvsq->Draw("colz");
+        // fh2_Aqvsx2
+        cAqvsx2 = new TCanvas("FRS_AoverQ_vs_X2", "A/q versus X2 2D", 10, 10, 800, 700);
+        fh2_Aqvsx2 = new TH2F("fh2_Aq_vs_X2_frs", "FRS: A/q vs X2", 3000, 1., 3, 1300, -120, 120);
+        fh2_Aqvsx2->GetXaxis()->SetTitle("A/q");
+        fh2_Aqvsx2->GetYaxis()->SetTitle("X S2 [mm]");
+        fh2_Aqvsx2->GetYaxis()->SetTitleOffset(1.1);
+        fh2_Aqvsx2->GetXaxis()->CenterTitle(true);
+        fh2_Aqvsx2->GetYaxis()->CenterTitle(true);
+        fh2_Aqvsx2->GetXaxis()->SetLabelSize(0.045);
+        fh2_Aqvsx2->GetXaxis()->SetTitleSize(0.045);
+        fh2_Aqvsx2->GetYaxis()->SetLabelSize(0.045);
+        fh2_Aqvsx2->GetYaxis()->SetTitleSize(0.045);
+        fh2_Aqvsx2->Draw("colz");
     }
 
     // --- --------------- --- //
@@ -416,7 +588,13 @@ InitStatus R3BSofSciOnlineSpectra::Init()
             mainfolID->Add(cMusicZvsRawTof_FromS8[d]);
     }
     if (fIdS2 > 0)
+    {
+        mainfolID->Add(cMusicEvsBeta);
+        mainfolID->Add(cBeta_Correlation);
         mainfolID->Add(cAqvsq);
+        mainfolID->Add(cAqvsx2);
+    }
+
     run->AddObject(mainfolID);
 
     // Register command to reset histograms
@@ -450,6 +628,10 @@ void R3BSofSciOnlineSpectra::Reset_Histo()
             fh1_RawTof_FromS2_AtSingleTcal_wTref[i]->Reset();
             // === R3BMUSIC === //
             fh2_MusZvsRawTof_FromS2[i]->Reset();
+            fh2_MusEvsBeta->Reset();
+            fh2_TwimvsMusicZ_betacorrected->Reset();
+            fh2_Aqvsx2->Reset();
+            fh2_Aqvsq->Reset();
         }
         if (fIdS8 > 0)
         {
@@ -497,7 +679,7 @@ void R3BSofSciOnlineSpectra::Exec(Option_t* option)
     // --- -------------- --- //
     // --- MUSIC Hit data --- //
     // --- -------------- --- //
-    Double_t MusicZ = 0.;
+    Double_t MusicZ = 0., MusicE = 0., MusicZ_betacorr = 0.;
     Double_t MusicDT = -1000000.;
     if (fMusHitItems && fMusHitItems->GetEntriesFast() > 0)
     {
@@ -507,7 +689,21 @@ void R3BSofSciOnlineSpectra::Exec(Option_t* option)
             R3BMusicHitData* hit = (R3BMusicHitData*)fMusHitItems->At(ihit);
             if (!hit)
                 continue;
+            MusicE = hit->GetEave();
             MusicZ = hit->GetZcharge();
+        }
+    }
+    //
+    Double_t TwimE = 0., TwimZ_betacorr = 0.;
+    if (fTwimHitItems && fTwimHitItems->GetEntriesFast() > 0)
+    {
+        nHits = fTwimHitItems->GetEntriesFast();
+        for (Int_t ihit = 0; ihit < nHits; ihit++)
+        {
+            R3BSofTwimHitData* Twimhit = (R3BSofTwimHitData*)fTwimHitItems->At(ihit);
+            if (!Twimhit)
+                continue;
+            TwimE = Twimhit->GetEave();
         }
     }
 
@@ -567,7 +763,10 @@ void R3BSofSciOnlineSpectra::Exec(Option_t* option)
         // --- ------------------------------ --- //
         Double_t xs2 = -10000.;
         Double_t toff = -10000.;
-        double Beta_S2_Cave, Gamma_S2_Cave, Brho_S2_Cave;
+        double Tof_wTref_S2_Cave = -10000., Beta_S2_Cave, Gamma_S2_Cave, Brho_S2_Cave;
+        double Tof_wTref_S2_S8 = -10000., Beta_S2_S8, Gamma_S2_S8, Brho_S2_S8;
+        double Tof_wTref_S8_Cave = -10000., Beta_S8_Cave, Gamma_S8_Cave, Brho_S8_Cave;
+        double TheBeta, TheGamma, TheBrho;
         double slope_calib = -5.8; // only for the s467, for S2 SofSci
         Int_t d, t;
         if (fSingleTcalItemsSci)
@@ -588,6 +787,7 @@ void R3BSofSciOnlineSpectra::Exec(Option_t* option)
                     xs2 = hitsingletcal->GetRawPosNs() * slope_calib;
                 if ((d == fNbDetectors - 1) && (fIdS2 > 0))
                     toff = hitsingletcal->GetRawTofNs_FromS2();
+                // if ((d == fNbDetectors-1) && (fIdS8>0)) toff = hitsingletcal->GetRawTofNs_FromS8(); //for S8
                 if (MusicZ > 0)
                 {
                     fh2_MusZvsRawPos[d]->Fill(hitsingletcal->GetRawPosNs(), MusicZ);
@@ -600,14 +800,48 @@ void R3BSofSciOnlineSpectra::Exec(Option_t* option)
                 {
                     fh2_MusDTvsRawPos->Fill(hitsingletcal->GetRawPosNs(), MusicDT); // at Cave C
                 }
+                if (fIdS2 > 0 && fIdS8 > 0)
+                {
+                    if (d == 2)
+                        Tof_wTref_S2_S8 = hitsingletcal->GetRawTofNs_FromS2();
+                    if (d == 3)
+                    {
+                        Tof_wTref_S2_Cave = hitsingletcal->GetRawTofNs_FromS2(); // same as toff
+                        Tof_wTref_S8_Cave = hitsingletcal->GetRawTofNs_FromS8();
+                    }
+                }
             } // end of loop over the SingleTcalItems
 
             if (MusicZ > 0 && xs2 != -10000. && toff != -10000.)
             {
-                Beta_S2_Cave = 15424.3 / (toff + 675. - 1922.) / 29.9999; // After run 336
+                Beta_S2_Cave = 462.837731 / (toff - 1318.258541); // ToFCalib
                 Gamma_S2_Cave = 1. / (TMath::Sqrt(1. - (Beta_S2_Cave) * (Beta_S2_Cave)));
-                Brho_S2_Cave = 9.048 * (1 + xs2 / 726.); //+mwpc0x/10./2000);
-                fh2_Aqvsq->Fill(Brho_S2_Cave / (3.10716 * Gamma_S2_Cave * Beta_S2_Cave), MusicZ);
+                Brho_S2_Cave = fBrho0 * (1 + xs2 / 726.); //+mwpc0x/10./2000);
+                //
+                Beta_S2_S8 = 279.088230 / (Tof_wTref_S2_S8 - 694.519095); // ToFCalib
+                Gamma_S2_S8 = 1. / (TMath::Sqrt(1. - (Beta_S2_S8) * (Beta_S2_S8)));
+                Brho_S2_S8 = fBrho0 * (1 + xs2 / 726.); //+mwpc0x/10./2000);
+                //
+                Beta_S8_Cave = 183.845298 / (Tof_wTref_S8_Cave - 623.62812); // ToFCalib
+                Gamma_S8_Cave = 1. / (TMath::Sqrt(1. - (Beta_S8_Cave) * (Beta_S8_Cave)));
+                Brho_S8_Cave = fBrho0 * (1 + xs2 / 726.); //+mwpc0x/10./2000);
+                //
+                fh2_Beta_Correlation[0]->Fill(Beta_S2_Cave, Beta_S2_S8);
+                fh2_Beta_Correlation[1]->Fill(Beta_S2_S8, Beta_S8_Cave);
+                fh2_Beta_Correlation[2]->Fill(Beta_S8_Cave, Beta_S2_Cave);
+                //
+                TheBeta = Beta_S2_S8;
+                TheGamma = Gamma_S2_S8;
+                TheBrho = Brho_S2_S8;
+                MusicZ_betacorr =
+                    fZ0 + fZ1 * TMath::Sqrt(MusicE) * TheBeta + fZ2 * MusicE * TheBeta * TheBeta; // mostly first order
+                TwimZ_betacorr = fTwimZ0 + fTwimZ1 * TMath::Sqrt(TwimE) * TheBeta +
+                                 fTwimZ2 * TwimE * TheBeta * TheBeta; // mostly first order
+                //
+                fh2_MusEvsBeta->Fill(TheBeta, TMath::Sqrt(MusicE) * TheBeta);
+                fh2_TwimvsMusicZ_betacorrected->Fill(MusicZ_betacorr, TwimZ_betacorr);
+                fh2_Aqvsq->Fill(TheBrho / (3.10716 * TheGamma * TheBeta), MusicZ_betacorr);
+                fh2_Aqvsx2->Fill(fBrho0 / (3.10716 * TheGamma * TheBeta), xs2);
             }
         }
         // Get cal data MWPC0
@@ -758,15 +992,23 @@ void R3BSofSciOnlineSpectra::FinishTask()
             {
                 fh1_RawTof_FromS2_AtTcalMult1[i]->Write();
                 fh1_RawTof_FromS2_AtTcalMult1_wTref[i]->Write();
+                fh1_RawTof_FromS2_AtSingleTcal_wTref[i]->Write();
                 cSciRawTof_FromS2[i]->Write();
             }
             if (fIdS8 > 0)
             {
                 fh1_RawTof_FromS8_AtTcalMult1[i]->Write();
                 fh1_RawTof_FromS8_AtTcalMult1_wTref[i]->Write();
+                fh1_RawTof_FromS8_AtSingleTcal_wTref[i]->Write();
                 cSciRawTof_FromS8[i]->Write();
             }
         }
+        cBeta_Correlation->Write();
+        for (Int_t i = 0; i < 3; i++)
+        {
+            fh2_Beta_Correlation[i]->Write();
+        }
+
         if (fMusHitItems)
         {
             for (UShort_t d = 0; d < fNbDetectors; d++)
@@ -785,6 +1027,17 @@ void R3BSofSciOnlineSpectra::FinishTask()
         }
         if (fCalItemsMwpc0)
             fh2_Mwpc0vsRawPos->Write();
+        if (fMusCalItems && fIdS2 > 0)
+        {
+            cMusicEvsBeta->Write();
+            fh2_MusEvsBeta->Write();
+            cTwimvsMusicZ_betacorrected->Write();
+            fh2_TwimvsMusicZ_betacorrected->Write();
+            cAqvsq->Write();
+            fh2_Aqvsq->Write();
+        }
+        cAqvsx2->Write();
+        fh2_Aqvsx2->Write();
     }
 }
 

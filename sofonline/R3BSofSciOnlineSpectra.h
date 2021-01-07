@@ -88,10 +88,12 @@ class R3BSofSciOnlineSpectra : public FairTask
     void SetNbChannels(Int_t nchs) { fNbChannels = nchs; }
     void SetIdS2(Int_t id) { fIdS2 = id; }
     void SetIdS8(Int_t id) { fIdS8 = id; }
+    void SetBrho0(Double_t brho) { fBrho0 = brho; }
     Int_t GetNbDetectors() { return fNbDetectors; }
     Int_t GetNbChannels() { return fNbChannels; }
     Int_t GetIdS2() { return fIdS2; }
     Int_t GetIdS8() { return fIdS8; }
+    Double_t GetBrho0() { return fBrho0; }
 
   private:
     TClonesArray* fMappedItemsSci;     /**< Array with mapped items. */
@@ -99,6 +101,7 @@ class R3BSofSciOnlineSpectra : public FairTask
     TClonesArray* fSingleTcalItemsSci; /**< Array with tcal items. */
     TClonesArray* fMusHitItems;        /**< Array with MUSIC Hit items. */
     TClonesArray* fMusCalItems;        /**< Array with MUSIC Cal items. */
+    TClonesArray* fTwimHitItems;        /**< Array with Twim Hit items. */
     TClonesArray* fCalItemsMwpc0;      /**< Array with cal items of mwpc0. */
     TClonesArray* fTofwHitData;
 
@@ -106,22 +109,35 @@ class R3BSofSciOnlineSpectra : public FairTask
     Int_t fNbChannels;
     Int_t fIdS2;
     Int_t fIdS8;
+    Double_t fBrho0;  //Brho setting in FRS S2-S8
+
+    Int_t fNumSec;
+    Int_t fNumAnodes;
+    Int_t fNumParams;
+    Float_t fZ0 = 0., fZ1 = 0. , fZ2 = 0.; // CalibPar for R3BMUSIC
+    TArrayF* CalZParams;
+    Float_t fTwimZ0 = 0., fTwimZ1 = 0., fTwimZ2 = 0.; // CalibPar for Twim
+    TArrayF* TwimCalZParams;
 
     // check for trigger should be done globablly (somewhere else)
     R3BEventHeader* header; /**< Event header.      */
     Int_t fNEvents;         /**< Event counter.     */
 
     // Canvas
-    TCanvas** cSciMult;        // [fNbDetectors];
-    TCanvas** cSciRawPos;      // [fNbDetectors];
-    TCanvas** cMusicZvsRawPos; // [fNbDetectors];
-    TCanvas* cMwpc0vsRawPos;
-    TCanvas* cMusicDTvsRawPos;
-    TCanvas** cSciRawTof_FromS2;      // [fNbDetectors];
-    TCanvas** cMusicZvsRawTof_FromS2; // [fNbDetectors];
-    TCanvas** cSciRawTof_FromS8;      // [fNbDetectors];
-    TCanvas** cMusicZvsRawTof_FromS8; // [fNbDetectors];
-    TCanvas* cAqvsq;
+    TCanvas** cSciMult;                // [fNbDetectors];
+    TCanvas** cSciRawPos;              // [fNbDetectors];
+    TCanvas** cMusicZvsRawPos;         // [fNbDetectors];
+    TCanvas*  cMwpc0vsRawPos;
+    TCanvas*  cMusicDTvsRawPos;
+    TCanvas** cSciRawTof_FromS2;       // [fNbDetectors];
+    TCanvas** cMusicZvsRawTof_FromS2;  // [fNbDetectors];
+    TCanvas** cSciRawTof_FromS8;       // [fNbDetectors];
+    TCanvas** cMusicZvsRawTof_FromS8;  // [fNbDetectors];
+    TCanvas*  cMusicEvsBeta;
+    TCanvas*  cTwimvsMusicZ_betacorrected;
+    TCanvas*  cBeta_Correlation;
+    TCanvas*  cAqvsx2;
+    TCanvas*  cAqvsq;
 
     // Histograms for Mapped data : Fine Time and Mult
     TH1I** fh1_finetime; // [fNbDetectors * NbChannels];
@@ -139,13 +155,18 @@ class R3BSofSciOnlineSpectra : public FairTask
     TH1D** fh1_RawTof_FromS8_AtTcalMult1_wTref;  // [fNbDetectors];
     TH1D** fh1_RawTof_FromS8_AtSingleTcal_wTref; // [fNbDetectors];
 
+    TH2F** fh2_Beta_Correlation;
+    
     // Histogram for correlation with R3B-Music
-    TH2F** fh2_MusZvsRawPos; //[fNbDetectors];
-    TH2F* fh2_MusDTvsRawPos;
-    TH2F** fh2_MusZvsRawTof_FromS2; //[fNbDetectors];
-    TH2F** fh2_MusZvsRawTof_FromS8; //[fNbDetectors];
-    TH2F* fh2_Aqvsq;
-
+    TH2F** fh2_MusZvsRawPos;          //[fNbDetectors];
+    TH2F*  fh2_MusDTvsRawPos;
+    TH2F** fh2_MusZvsRawTof_FromS2;   //[fNbDetectors];
+    TH2F** fh2_MusZvsRawTof_FromS8;   //[fNbDetectors];
+    TH2F*  fh2_TwimvsMusicZ_betacorrected;
+    TH2F*  fh2_MusEvsBeta;
+    TH2F*  fh2_Aqvsx2;
+    TH2F*  fh2_Aqvsq;
+    
     // Histogram for correlation with Mwpc0
     TH2F* fh2_Mwpc0vsRawPos;
 

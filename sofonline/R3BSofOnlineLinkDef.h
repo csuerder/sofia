@@ -16,6 +16,8 @@
 #pragma link C++ class R3BSofSciOnlineSpectra + ;
 #pragma link C++ class R3BSofTofWOnlineSpectra + ;
 #pragma link C++ class R3BSofFrsOnlineSpectra + ;
+#pragma link C++ class R3BSofFrsFillTree + ;
+#pragma link C++ class R3BSofFrsFragmentTree + ;
 #pragma link C++ class R3BSofTwimvsMusicOnlineSpectra + ;
 #pragma link C++ class R3BAmsCorrelationOnlineSpectra + ;
 #pragma link C++ class R3BSofTrackingOnlineSpectra + ;
