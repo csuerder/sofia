@@ -80,6 +80,7 @@ class R3BSofFragmentAnalysis : public FairTask
     /** Accessor functions **/
     void SetOffsetAq(Double_t theAq) { fOffsetAq = theAq; }
     void SetOffsetZ(Double_t theZ) { fOffsetZ = theZ; }
+    void SetTofWPos(Double_t pos) { fTofWPos = pos; }
 
   private:
     void SetParameter();

@@ -22,7 +22,7 @@
 #include "R3BSofTrackingData.h"
 
 //#include "R3BMusicCalData.h"
-//#include "R3BMusicHitData.h"
+#include "R3BMusicHitData.h"
 #include "R3BSofMwpcCalData.h"
 #include "R3BSofMwpcHitData.h"
 #include "R3BSofSciCalData.h"
@@ -118,7 +118,7 @@ class R3BSofFrsFragmentTree : public FairTask
     //TClonesArray* fMappedItemsSci;     /**< Array with mapped items. */
     //TClonesArray* fTcalItemsSci;       /**< Array with tcal items. */
     //TClonesArray* fSingleTcalItemsSci; /**< Array with tcal items. */
-    //TClonesArray* fMusHitItems;        /**< Array with MUSIC Hit items. */
+    TClonesArray* fMusHitItems;        /**< Array with MUSIC Hit items. */
     //TClonesArray* fMusCalItems;        /**< Array with MUSIC Cal items. */
     TClonesArray* fTwimHitItems;        /**< Array with Twim Hit items. */
     TClonesArray* fHitItemsMwpc0;
@@ -150,9 +150,9 @@ class R3BSofFrsFragmentTree : public FairTask
     // Tree and branches
     TTree* Tree;
     UInt_t tpat = 0, trigger = 0;
-    Float_t MusicZ = -5000., MusicE = -5000.;
+    Float_t MusicZ = -5000., MusicE = -5000., MusicTheta = -5000.;
     Float_t MusicDT = -5000.;
-    Float_t TwimE = -5000., TwimZ = -5000.;
+    Float_t TwimE = -5000., TwimZ = -5000., TwimTheta = -5000.;
     UChar_t* multMapSci;
     Float_t* iRawTimeNs;
     Float_t xs2 = -5000., xpos[3] = {-5000.};

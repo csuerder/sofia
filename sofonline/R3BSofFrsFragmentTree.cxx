@@ -66,9 +66,9 @@ R3BSofFrsFragmentTree::~R3BSofFrsFragmentTree()
     if (fTcalItemsSci)
         delete fTcalItemsSci;
     if (fSingleTcalItemsSci)
-        delete fSingleTcalItemsSci;
+    delete fSingleTcalItemsSci;*/
     if (fMusHitItems)
-    delete fMusHitItems;*/
+      delete fMusHitItems;
     if (fTwimHitItems)
         delete fTwimHitItems;
     /*    if (fMusCalItems)
@@ -97,6 +97,8 @@ InitStatus R3BSofFrsFragmentTree::Init()
     if (NULL == mgr)
         LOG(FATAL) << "R3BSofFrsFragmentTree::Init FairRootManager not found";
     header = (R3BEventHeader*)mgr->GetObject("R3BEventHeader");
+    if (!header)
+      header = (R3BEventHeader*)mgr->GetObject("EventHeader.");
 
     // Reading MusicCalPar from FairRuntimeDb
     FairRuntimeDb* rtdb = FairRuntimeDb::instance();
@@ -118,7 +120,7 @@ InitStatus R3BSofFrsFragmentTree::Init()
     {
         return kFATAL;
     }
-
+    std::cout<<std::endl<<  __cplusplus << std::endl;
     /*
     // --- ------------------------------------ --- //
     // --- get access to mapped data of the SCI --- //
@@ -147,12 +149,12 @@ InitStatus R3BSofFrsFragmentTree::Init()
         return kFATAL;
     }
     */
-    /*
+    
     // get access to hit data of the MUSIC
     fMusHitItems = (TClonesArray*)mgr->GetObject("MusicHitData");
     if (!fMusHitItems)
         LOG(WARNING) << "R3BSofFrsFragmentTree: MusicHitData not found";
-
+    /*
     // get access to cal data of the MUSIC
     fMusCalItems = (TClonesArray*)mgr->GetObject("MusicCalData");
     if (!fMusCalItems)
@@ -242,8 +244,10 @@ InitStatus R3BSofFrsFragmentTree::Init()
     Tree->Branch("trigger", &trigger);
     // Tree->Branch("MusicE", &MusicE);
     Tree->Branch("MusicZ", &MusicZ);
+    Tree->Branch("MusicTheta", &MusicTheta);
     // Tree->Branch("TwimE", &TwimE);
     Tree->Branch("TwimZ", &TwimZ);
+    Tree->Branch("TwimTheta", &TwimTheta);
     Tree->Branch("xs2", &xs2);
     Tree->Branch("xpos", xpos, "xpos[3]/F");
     //
@@ -316,7 +320,7 @@ void R3BSofFrsFragmentTree::Exec(Option_t* option)
         }
     }
     */
-    /*
+    
     // --- -------------- --- //
     // --- MUSIC Hit data --- //
     // --- -------------- --- //
@@ -329,11 +333,12 @@ void R3BSofFrsFragmentTree::Exec(Option_t* option)
             if (!hit)
           continue;
             MusicE = hit->GetEave();
+	    MusicTheta = hit ->GetTheta();
         //MusicZ = hit->GetZcharge();
       }
       }
     //
-    */
+    
 
     // --- -------------- --- //
     // --- Frs Ana data --- //
@@ -423,6 +428,7 @@ void R3BSofFrsFragmentTree::Exec(Option_t* option)
             if (!Twimhit)
                 continue;
             TwimE = Twimhit->GetEave();
+	    TwimTheta = Twimhit ->GetTheta();
         }
     }
 
@@ -491,7 +497,8 @@ void R3BSofFrsFragmentTree::Exec(Option_t* option)
             auto Mwpc0hit = (R3BSofMwpcHitData*)fHitItemsMwpc0->At(ihit);
             if (!Mwpc0hit)
                 continue;
-            Mw0_X = Mwpc0hit->GetX();
+            //Mw0_X = Mwpc0hit->GetX();
+	    Mw0_X = -1.* Mwpc0hit->GetX(); // easy fix
             Mw0_Y = Mwpc0hit->GetY();
         }
     }
@@ -505,7 +512,8 @@ void R3BSofFrsFragmentTree::Exec(Option_t* option)
             if (!Mwpc1hit)
                 continue;
             Mw1_X = Mwpc1hit->GetX();
-            Mw1_Y = Mwpc1hit->GetY();
+            //Mw1_Y = Mwpc1hit->GetY();
+	    Mw2_Y = Mwpc1hit->GetY(); // easy fix
         }
     }
 
@@ -518,7 +526,8 @@ void R3BSofFrsFragmentTree::Exec(Option_t* option)
             if (!Mwpc2hit)
                 continue;
             Mw2_X = Mwpc2hit->GetX();
-            Mw2_Y = Mwpc2hit->GetY();
+            //Mw2_Y = Mwpc2hit->GetY();
+	    Mw1_Y = Mwpc2hit->GetY(); // easy fix
         }
     }
 
@@ -531,7 +540,8 @@ void R3BSofFrsFragmentTree::Exec(Option_t* option)
             if (!Mwpc3hit)
                 continue;
             Mw3_X = Mwpc3hit->GetX();
-            Mw3_Y = Mwpc3hit->GetY();
+            //Mw3_Y = Mwpc3hit->GetY();
+	    Mw3_Y = -1. * Mwpc3hit->GetY(); // easy fix
         }
     }
     /*
@@ -584,9 +594,9 @@ void R3BSofFrsFragmentTree::FinishEvent()
     */
     // Init branch values
     tpat = 0, trigger = 0;
-    MusicZ = -5000., MusicE = -5000.;
+    MusicZ = -5000., MusicE = -5000., MusicTheta = -5000.;
     MusicDT = -5000.;
-    TwimE = -5000., TwimZ = -5000.;
+    TwimE = -5000., TwimZ = -5000., TwimTheta = -5000.;
     xs2 = -5000.;
     xpos[0] = -5000.;
     xpos[1] = -5000.;
