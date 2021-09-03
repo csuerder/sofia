@@ -156,7 +156,7 @@ void R3BSofMwpc3Cal2Hit::Exec(Option_t* option)
         // if(padmy==64) std::cout << padmy << " " << qmy << " " << qdown << " " << qup << std::endl;
         // if(padmy==63) std::cout << padmy << " " << qmy << " " << qdown << " " << qup << std::endl;
         if (qdown > 0 && qup > 0)
-            y = GetPositionY(qmy, padmy, qdown, qup);
+            y = -1. * GetPositionY(qmy, padmy, qdown, qup);
 
         AddHitData(x, y);
     }

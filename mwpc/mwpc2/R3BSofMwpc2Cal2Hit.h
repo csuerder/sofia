@@ -57,7 +57,9 @@ class R3BSofMwpc2Cal2Hit : public FairTask
 
     Bool_t fOnline; // Don't store data for online
 
-    TClonesArray* fMwpcCalDataCA; /**< Array with Cal input data. >*/
+    //Easy fix for the swapped Y mappings of MW1&2.
+    TClonesArray* fMwpcCalDataCA1; /**< Array with Cal input data. >*/
+    TClonesArray* fMwpcCalDataCA2; /**< Array with Cal input data. >*/
     TClonesArray* fMwpcHitDataCA; /**< Array with Hit output data. >*/
 
     /** Private method AddHitData **/
@@ -65,9 +67,9 @@ class R3BSofMwpc2Cal2Hit : public FairTask
     R3BSofMwpcHitData* AddHitData(Double_t x, Double_t y);
 
     /** Private method to obtain the position X **/
-    Double_t GetPostionX(Double_t qmax, Int_t padmax, Double_t qleft, Double_t qright);
+    Double_t GetPositionX(Double_t qmax, Int_t padmax, Double_t qleft, Double_t qright);
     /** Private method to obtain the position Y **/
-    Double_t GetPostionY(Double_t qmax, Int_t padmax, Double_t qdown, Double_t qup);
+    Double_t GetPositionY(Double_t qmax, Int_t padmax, Double_t qdown, Double_t qup);
 
   public:
     // Class definition

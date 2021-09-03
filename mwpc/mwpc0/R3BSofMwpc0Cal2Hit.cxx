@@ -145,7 +145,7 @@ void R3BSofMwpc0Cal2Hit::Exec(Option_t* option)
         qright = (Double_t)fx[padmx + 1];
         // std::cout<<qleft<<" "<<qright<<std::endl;
         if (qleft > 0 && qright > 0)
-            x = GetPostionX(qmx, padmx, qleft, qright);
+            x = -1. * GetPostionX(qmx, padmx, qleft, qright);
 
         // Obtain position Y ----
         qdown = fy[padmy - 1];
