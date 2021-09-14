@@ -14,7 +14,7 @@ ${R3BROOT_SOURCE_DIR}/r3bdata/musicData
 ${R3BROOT_SOURCE_DIR}/r3bdata/amsData
 ${R3BROOT_SOURCE_DIR}/r3bdata/califaData
 ${R3BROOT_SOURCE_DIR}/r3bdata/wrData
-${R3BROOT_SOURCE_DIR}/tracker/online
+${R3BROOT_SOURCE_DIR}/ssd/online
 ${R3BROOT_SOURCE_DIR}/califa/online
 ${R3BSOF_SOURCE_DIR}/twim
 ${R3BSOF_SOURCE_DIR}/sofdata
