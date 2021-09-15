@@ -497,8 +497,7 @@ void R3BSofFrsFragmentTree::Exec(Option_t* option)
             auto Mwpc0hit = (R3BSofMwpcHitData*)fHitItemsMwpc0->At(ihit);
             if (!Mwpc0hit)
                 continue;
-            //Mw0_X = Mwpc0hit->GetX();
-	    Mw0_X = -1.* Mwpc0hit->GetX(); // easy fix
+            Mw0_X = Mwpc0hit->GetX();
             Mw0_Y = Mwpc0hit->GetY();
         }
     }
@@ -512,8 +511,7 @@ void R3BSofFrsFragmentTree::Exec(Option_t* option)
             if (!Mwpc1hit)
                 continue;
             Mw1_X = Mwpc1hit->GetX();
-            //Mw1_Y = Mwpc1hit->GetY();
-	    Mw2_Y = Mwpc1hit->GetY(); // easy fix
+            Mw1_Y = Mwpc1hit->GetY();
         }
     }
 
@@ -526,8 +524,7 @@ void R3BSofFrsFragmentTree::Exec(Option_t* option)
             if (!Mwpc2hit)
                 continue;
             Mw2_X = Mwpc2hit->GetX();
-            //Mw2_Y = Mwpc2hit->GetY();
-	    Mw1_Y = Mwpc2hit->GetY(); // easy fix
+            Mw2_Y = Mwpc2hit->GetY();
         }
     }
 
@@ -540,8 +537,7 @@ void R3BSofFrsFragmentTree::Exec(Option_t* option)
             if (!Mwpc3hit)
                 continue;
             Mw3_X = Mwpc3hit->GetX();
-            //Mw3_Y = Mwpc3hit->GetY();
-	    Mw3_Y = -1. * Mwpc3hit->GetY(); // easy fix
+            Mw3_Y = Mwpc3hit->GetY();
         }
     }
     /*

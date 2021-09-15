@@ -11,6 +11,7 @@
 #include "R3BSofTwimMapped2Cal.h"
 #include "R3BSofTwimMappedData.h"
 #include "TGraph.h"
+#include "TGraph2D.h"
 #include "TH1F.h"
 
 class TClonesArray;
@@ -63,13 +64,14 @@ class R3BSofTwimMapped2CalPar : public FairTask
     {
         fLimit_left = left;
         fLimit_right = right;
+	LOG(INFO)<<"R3BSofTwimMapped2CalPar Left"<<fLimit_left<<", Right"<<fLimit_right;
     }
 
   private:
     Int_t fNumSec;
     Int_t fNumAnodes;
     Int_t fMaxMult;
-    Int_t fMinStadistics;
+    Int_t fMinStatistics;
     Int_t fNumParams;
     Int_t fNumPosParams;
     Int_t fNumAnodesRef;
@@ -94,7 +96,8 @@ class R3BSofTwimMapped2CalPar : public FairTask
     TClonesArray* fHitItemsMwpcA;    /**< Array with hit items. */
     TClonesArray* fHitItemsMwpcB;    /**< Array with hit items. */
 
-    TGraph** fg_anode;
+    TGraph** fg_anode, **fg_anode_result;
+    TGraph2D** fg_anode2d;
 
   public:
     // Class definition

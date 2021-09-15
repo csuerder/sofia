@@ -137,21 +137,12 @@ void R3BSofMwpc2Cal2Hit::Exec(Option_t* option)
         // FIXME: in November this should be OK!
         if (planeId == 1 || planeId == 2)
             fx[padId] += q; // Xup+Xdown
-        else
-            fy[padId] = q;
 
         if (q > qmx && (planeId == 1 || planeId == 2))
         {
             qmx = q;
             padmx = padId;
         }
-	/*
-        if (q > qmy && planeId == 3)
-        {
-            qmy = q;
-            padmy = padId;
-        }
-	*/
     }
     // Reading the Input -- Cal Data for Y --
     Int_t nHits1 = fMwpcCalDataCA1->GetEntries();
@@ -162,11 +153,6 @@ void R3BSofMwpc2Cal2Hit::Exec(Option_t* option)
     R3BSofMwpcCalData** calData1;
     calData1 = new R3BSofMwpcCalData*[nHits1];
 
-    for (Int_t i = 0; i < Mw2PadsX; i++)
-        fx[i] = 0;
-    for (Int_t i = 0; i < Mw2PadsY; i++)
-        fy[i] = 0;
-
     for (Int_t i = 0; i < nHits1; i++)
     {
         calData1[i] = (R3BSofMwpcCalData*)(fMwpcCalDataCA1->At(i));
@@ -174,9 +160,7 @@ void R3BSofMwpc2Cal2Hit::Exec(Option_t* option)
         padId = calData1[i]->GetPad(); // From 0 to 63 for X down and up
         q = calData1[i]->GetQ();
 
-        if (planeId == 1 || planeId == 2)
-            fx[padId] += q; // Xup+Xdown
-        else
+        if (planeId == 3)
             fy[padId] = q;
         if (q > qmy && planeId == 3)
         {
