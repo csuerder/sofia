@@ -96,6 +96,7 @@ void R3BSofTwimMapped2Cal::SetParameter()
     fNumSec = fCal_Par->GetNumSec();           // Number of sections
     fNumAnodes = fCal_Par->GetNumAnodes();     // Number of anodes per section
     fNumParams = fCal_Par->GetNumParamsEFit(); // Number of Parameters
+    fNumPosParams = fCal_Par->GetNumParamsPosFit(); // Number of Parameters
 
     LOG(INFO) << "R3BSofTwimMapped2Cal: Nb sections: " << fNumSec;
     LOG(INFO) << "R3BSofTwimMapped2Cal: Nb anodes: " << fNumAnodes;
@@ -234,20 +235,24 @@ void R3BSofTwimMapped2Cal::Exec(Option_t* option)
                 Int_t ii = s * fNumAnodes * fNumPosParams + fNumPosParams * i;
                 Float_t a0 = PosParams->GetAt(ii);
                 Float_t a1 = PosParams->GetAt(ii + 1);
+		Float_t a2 = fNumPosParams>2?PosParams->GetAt(ii + 2):0;
                 for (Int_t j = 0; j < mulanode[s][fNumAnodes]; j++)
                     for (Int_t k = 0; k < mulanode[s][i]; k++)
                     {
-                        if (i < 8)
-                        {
-                            if (fE[s][k][i] > 0.)
-                                AddCalData(s, i, a0 + a1 * (fDT[s][k][i] - fDT[s][j][fNumAnodes]), fE[s][k][i]);
-                        }
-                        else
-                        {
-                            if (fE[s][k][i] > 0.)
-                                AddCalData(s, i, a0 + a1 * (fDT[s][k][i] - fDT[s][j][fNumAnodes + 1]), fE[s][k][i]);
-                        }
-                    }
+		        if (fE[s][k][i] > 0.)
+		        {
+			    Double_t dt = NAN;
+			    if (i < 8)
+			    {
+			        dt = fDT[s][k][i] - fDT[s][j][fNumAnodes];
+			    }
+			    else
+			    {
+			        dt = fDT[s][k][i] - fDT[s][j][fNumAnodes + 1];
+			    }
+			    AddCalData(s, i, a0 + a1 * dt + a2 * fE[s][k][i], fE[s][k][i]);
+			}
+		    }
             }
         }
 

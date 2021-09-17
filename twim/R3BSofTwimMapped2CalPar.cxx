@@ -365,7 +365,7 @@ void R3BSofTwimMapped2CalPar::FinishTask()
 		fit2d->GetParameters(&par[0]);
 		fCal_Par->SetPosParams(par[0], i * fNumPosParams + s * fNumAnodes * fNumPosParams); // Position
 		fCal_Par->SetPosParams(par[1], i * fNumPosParams + s * fNumAnodes * fNumPosParams + 1); // Coefficient to DT
-		fCal_Par->SetPosParams(par[2] + fCal_Par->GetAnodeCalParams()->GetAt(i * fNumParams + s * fNumAnodes * fNumParams), i * fNumPosParams  + s * fNumAnodes * fNumPosParams + 2); // Coefficient to Energy. Pedestal added for consistency.
+		fCal_Par->SetPosParams(par[2], i * fNumPosParams + s * fNumAnodes * fNumPosParams + 2); // Coefficient to Energy
 		//
 		fg_anode2d[s * fNumAnodes + i]->Draw("p");
 		fit2d->Draw("same");
