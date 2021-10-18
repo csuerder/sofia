@@ -8,7 +8,8 @@ set(INCLUDE_DIRECTORIES
 #put here all directories where header files are located
 ${R3BROOT_SOURCE_DIR}/r3bbase
 ${R3BROOT_SOURCE_DIR}/r3bdata
-${R3BROOT_SOURCE_DIR}/music
+${R3BROOT_SOURCE_DIR}/music/online
+${R3BROOT_SOURCE_DIR}/music/pars
 #${R3BROOT_SOURCE_DIR}/frs/frsdata
 ${R3BROOT_SOURCE_DIR}/r3bdata/musicData
 ${R3BROOT_SOURCE_DIR}/r3bdata/amsData
