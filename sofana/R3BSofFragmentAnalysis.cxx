@@ -225,10 +225,10 @@ InitStatus R3BSofFragmentAnalysis::ReInit()
 void R3BSofFragmentAnalysis::Exec(Option_t* option)
 {
     // Reset entries in output arrays, local arrays
-    Double_t fZ = 0., fE = 0., fAq = 0.;
-    Double_t Beta = 0., Brho_Cave = 0., Length = 0.;
-    Double_t ToF_Cave = 0.;
-    Double_t mw[4][4] = { { -5000. } }; // mwpc[ID:0-4][x,y,a,b]
+    Double_t fZ = NAN, fE = NAN, fAq = NAN;
+    Double_t Beta = NAN, Brho_Cave = NAN, Length = NAN;
+    Double_t ToF_Cave = NAN, TwimTheta = NAN;
+    Double_t mw[4][4] = { { NAN } }; // mwpc[ID:0-4][x,y,a,b]
     Int_t Paddle = 0;
 
     Int_t nHitMwpc0 = fMwpc0HitDataCA->GetEntries();
@@ -244,7 +244,7 @@ void R3BSofFragmentAnalysis::Exec(Option_t* option)
     HitMwpc2 = new R3BSofMwpcHitData*[nHitMwpc2];
     HitMwpc3 = new R3BSofMwpcHitData*[nHitMwpc3];
 
-    if (nHitMwpc0 < 1 || nHitMwpc1 < 1 || nHitMwpc2 < 1 || nHitMwpc3 < 1 || nHitTofW < 1 || nHitTwim < 1)
+    if ( nHitMwpc1 < 1 || nHitMwpc2 < 1 || nHitMwpc3 < 1 || nHitTofW < 1 || nHitTwim < 1)
         return;
     // LOG(INFO) << "R3BSofFragmentAnalysis: nTwim: "<< nHitTwim << ", nTofW: " << nHitTofW << ", nMwpc: " << nHitMwpc ;
 
@@ -261,8 +261,8 @@ void R3BSofFragmentAnalysis::Exec(Option_t* option)
         mw[2][1] = HitMwpc2[i]->GetY();
     }
     // Calculate raw angle /mm
-    mw[1][2] = mw[2][0] - mw[1][0];
-    mw[1][3] = mw[2][1] - mw[1][1];
+    //mw[1][2] = mw[2][0] - mw[1][0];
+    //mw[1][3] = mw[2][1] - mw[1][1];
     //
     for (Int_t i = 0; i < nHitMwpc3; i++)
     {
@@ -270,10 +270,6 @@ void R3BSofFragmentAnalysis::Exec(Option_t* option)
         mw[3][0] = HitMwpc3[i]->GetX();
         mw[3][1] = HitMwpc3[i]->GetY();
     }
-    Double_t Dispersion_MW3 = (mw[3][0] - 107.612277 - mw[1][2] * (7.969415)) + (-10.967255 - mw[1][0] * (2.033001)) +
-                              (-3.300145 - mw[1][3] * (0.076592)) + (-1.705562 - mw[1][1] * (0.096213));
-    Brho_Cave = (Dispersion_MW3 + 2152.65) / 247.966 + 0.3;
-
     ////
     // Time from TofW
     for (Int_t i = 0; i < nHitTofW; i++)
@@ -288,11 +284,10 @@ void R3BSofFragmentAnalysis::Exec(Option_t* option)
         // std::cout <<" init: "<< HitTofW[i]->GetPaddle() << " "<< ToF_Cave << std::endl;
     }
 
-    if (ToF_Cave <= 0.)
+    if (isnan(ToF_Cave))
         return;
 
     double gamma = 1. / sqrt(1. - Beta * Beta);
-    fAq = Brho_Cave / (3.10716 * Beta * gamma);
 
     // Z from twim-music ------------------------------------
     Double_t countz = 0;
@@ -302,18 +297,26 @@ void R3BSofFragmentAnalysis::Exec(Option_t* option)
         if (HitTwim[i]->GetZcharge() > 1)
         {
             // fZ = fZ + HitTwim[i]->GetZcharge();
-            fE = fE + HitTwim[i]->GetEave();
+	    fE = HitTwim[i]->GetEave();
+	    //fE = fE + HitTwim[i]->GetEave();
+	    TwimTheta = HitTwim[i]->GetTheta();
             countz++;
         }
     }
     if (countz > 0)
     {
-        fE = fE / countz;
+      //fE = fE / countz;
         fZ = fTwimZ0 + fTwimZ1 * TMath::Sqrt(fE) * Beta + fTwimZ2 * fE * Beta * Beta;
     }
-
+    //
+    // Calculate brho and aoq
+    Double_t Dispersion_MW3 = mw[3][0] -120.342308 - TwimTheta *(5685.146295) -4.625269 - (mw[1][0]+mw[2][0])/2. *(0.571696)-1.241102;
+      // - (mw[3][1]-mw[1][1]) *(-0.056444))+ (- (10.569345) - (mw[1][1]+mw[2][1])/2. *(0.764638)) // Y correction is not used.
+    Brho_Cave = (Dispersion_MW3 +1282.411556)/141.549357;
+    fAq = Brho_Cave / (3.10716 * Beta * gamma); //  m_u * c_0 / e = 3.107
+    
     // Fill the data
-    if (true) // if (fZ > 1 && fAq > 1. && Brho_Cave > 0. && Beta > 0.)
+    if (fZ > 1 && fAq > 1. && Brho_Cave > 0. && Beta > 0.)
         AddData(fZ + fOffsetZ, fAq + fOffsetAq, Beta, Length, Brho_Cave, Paddle);
     return;
 }

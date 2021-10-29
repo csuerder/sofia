@@ -150,24 +150,24 @@ class R3BSofFrsFragmentTree : public FairTask
     // Tree and branches
     TTree* Tree;
     UInt_t tpat = 0, trigger = 0;
-    Float_t MusicZ = -5000., MusicE = -5000., MusicTheta = -5000.;
-    Float_t MusicDT = -5000.;
-    Float_t TwimE = -5000., TwimZ = -5000., TwimTheta = -5000.;
+    Float_t MusicZ = NAN, MusicE = NAN, MusicTheta = NAN;
+    Float_t MusicDT = NAN;
+    Float_t TwimE = NAN, TwimZ = NAN, TwimTheta = NAN;
     UChar_t* multMapSci;
     Float_t* iRawTimeNs;
-    Float_t xs2 = -5000., xpos[3] = {-5000.};
-    Float_t Mw0_X = -5000., Mw0_Y = -5000.;
-    Float_t Mw1_X = -5000., Mw1_Y = -5000.;
-    Float_t Mw2_X = -5000., Mw2_Y = -5000.;
-    Float_t Mw3_X = -5000., Mw3_Y = -5000.;
-    Float_t Tofw_Tof = -5000.;
+    Float_t xs2 = NAN, xpos[3] = {NAN};
+    Float_t Mw0_X = NAN, Mw0_Y = NAN;
+    Float_t Mw1_X = NAN, Mw1_Y = NAN;
+    Float_t Mw2_X = NAN, Mw2_Y = NAN;
+    Float_t Mw3_X = NAN, Mw3_Y = NAN;
+    Float_t Tofw_Y = NAN;
     UChar_t Tofw_Paddle = 0;
-    Float_t MusicZ_S2_Cave = -5000., Tof_wTref_S2_Cave = -5000., Beta_S2_Cave = -5000., Brho_S2_Cave = -5000.;
-    Float_t MusicZ_S2_S8 = -5000., Tof_wTref_S2_S8 = -5000., Beta_S2_S8 = -5000., Brho_S2_S8 = -5000.;
-    Float_t MusicZ_S8_Cave = -5000., Tof_wTref_S8_Cave = -5000., Beta_S8_Cave = -5000., Brho_S8_Cave = -5000.;
-    Float_t AoQ_S2_Cave = -5000., AoQ_S2_S8 = -5000., AoQ_S8_Cave = -5000.;
-    Float_t TheBeta = -5000., TheGamma = -5000., TheBrho = -5000., TheAoQ = -5000.;
-    Float_t FragZ = -5000., FragTof = -5000., FragAoQ = -5000., FragBeta = -5000., FragBrho = -5000., FragLength = -5000.;
+    Float_t MusicZ_S2_Cave = NAN, Tof_wTref_S2_Cave = NAN, Beta_S2_Cave = NAN, Brho_S2_Cave = NAN;
+    Float_t MusicZ_S2_S8 = NAN, Tof_wTref_S2_S8 = NAN, Beta_S2_S8 = NAN, Brho_S2_S8 = NAN;
+    Float_t MusicZ_S8_Cave = NAN, Tof_wTref_S8_Cave = NAN, Beta_S8_Cave = NAN, Brho_S8_Cave = NAN;
+    Float_t AoQ_S2_Cave = NAN, AoQ_S2_S8 = NAN, AoQ_S8_Cave = NAN;
+    Float_t TheBeta = NAN, TheGamma = NAN, TheBrho = NAN, TheAoQ = NAN;
+    Float_t FragZ = NAN, FragTof = NAN, FragAoQ = NAN, FragBeta = NAN, FragBrho = NAN, FragLength = NAN;
     
   public:
     ClassDef(R3BSofFrsFragmentTree, 1)

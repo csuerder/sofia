@@ -282,7 +282,7 @@ InitStatus R3BSofFrsFragmentTree::Init()
     Tree->Branch("Mw2_Y", &Mw2_Y);
     Tree->Branch("Mw3_X", &Mw3_X);
     Tree->Branch("Mw3_Y", &Mw3_Y);
-    // Tree->Branch("Tofw_Tof", &Tofw_Tof);
+    Tree->Branch("Tofw_Y", &Tofw_Y);
     Tree->Branch("Tofw_Paddle", &Tofw_Paddle);
     //
     Tree->Branch("FragZ", &FragZ);
@@ -540,7 +540,7 @@ void R3BSofFrsFragmentTree::Exec(Option_t* option)
             Mw3_Y = Mwpc3hit->GetY();
         }
     }
-    /*
+    
     if (fTofWHitDataCA && fTofWHitDataCA->GetEntriesFast() > 0)
     {
         nHits = fTofWHitDataCA->GetEntriesFast();
@@ -549,10 +549,11 @@ void R3BSofFrsFragmentTree::Exec(Option_t* option)
             auto Tofwhit = (R3BSofTofWHitData*)fTofWHitDataCA->At(ihit);
             if (!Tofwhit)
                 continue;
-            FragTof = Tofwhit->GetTime();
+            FragTof = Tofwhit->GetTof();
+            Tofw_Y = Tofwhit->GetY();
             Tofw_Paddle = Tofwhit->GetPaddle();
-        }
-    }*/
+	}
+    }
 
     nHits = fFragData->GetEntriesFast();
     for (Int_t ihit = 0; ihit < nHits; ihit++)
@@ -565,8 +566,8 @@ void R3BSofFrsFragmentTree::Exec(Option_t* option)
         FragBeta = hit->GetBeta();
         FragBrho = hit->GetBrho();
         FragLength = hit->GetLength();
-        FragTof = FragBrho / FragBeta;
-        Tofw_Paddle = hit->GetPaddle();
+        //FragTof = FragLength / FragBeta;
+        //Tofw_Paddle = hit->GetPaddle();
     }
     // LOG(INFO) << MusicZ << " " << FragZ;
     Tree->Fill();
@@ -590,27 +591,28 @@ void R3BSofFrsFragmentTree::FinishEvent()
     */
     // Init branch values
     tpat = 0, trigger = 0;
-    MusicZ = -5000., MusicE = -5000., MusicTheta = -5000.;
-    MusicDT = -5000.;
-    TwimE = -5000., TwimZ = -5000., TwimTheta = -5000.;
-    xs2 = -5000.;
-    xpos[0] = -5000.;
-    xpos[1] = -5000.;
-    xpos[2] = -5000.;
-    Mw0_X = -5000., Mw0_Y = -5000.;
-    Mw1_X = -5000., Mw1_Y = -5000.;
-    Mw2_X = -5000., Mw2_Y = -5000.;
-    Mw3_X = -5000., Mw3_Y = -5000.;
-    MusicZ_S2_Cave = -5000.;
-    Tof_wTref_S2_Cave = -5000., Beta_S2_Cave = -5000., Brho_S2_Cave = -5000.;
-    MusicZ_S2_S8 = -5000.;
-    Tof_wTref_S2_S8 = -5000., Beta_S2_S8 = -5000., Brho_S2_S8 = -5000.;
-    MusicZ_S8_Cave = -5000.;
-    Tof_wTref_S8_Cave = -5000., Beta_S8_Cave = -5000., Brho_S8_Cave = -5000.;
-    AoQ_S2_Cave = -5000., AoQ_S2_S8 = -5000., AoQ_S8_Cave = -5000.;
-    TheBeta = -5000., TheGamma = -5000., TheBrho = -5000., TheAoQ = -5000.;
+    MusicZ = NAN, MusicE = NAN, MusicTheta = NAN;
+    MusicDT = NAN;
+    TwimE = NAN, TwimZ = NAN, TwimTheta = NAN;
+    xs2 = NAN;
+    xpos[0] = NAN;
+    xpos[1] = NAN;
+    xpos[2] = NAN;
+    Mw0_X = NAN, Mw0_Y = NAN;
+    Mw1_X = NAN, Mw1_Y = NAN;
+    Mw2_X = NAN, Mw2_Y = NAN;
+    Mw3_X = NAN, Mw3_Y = NAN;
+    MusicZ_S2_Cave = NAN;
+    Tof_wTref_S2_Cave = NAN, Beta_S2_Cave = NAN, Brho_S2_Cave = NAN;
+    MusicZ_S2_S8 = NAN;
+    Tof_wTref_S2_S8 = NAN, Beta_S2_S8 = NAN, Brho_S2_S8 = NAN;
+    MusicZ_S8_Cave = NAN;
+    Tof_wTref_S8_Cave = NAN, Beta_S8_Cave = NAN, Brho_S8_Cave = NAN;
+    AoQ_S2_Cave = NAN, AoQ_S2_S8 = NAN, AoQ_S8_Cave = NAN;
+    TheBeta = NAN, TheGamma = NAN, TheBrho = NAN, TheAoQ = NAN;
+    Tofw_Y = NAN;
     Tofw_Paddle = 0;
-    FragZ = -5000., FragAoQ = -5000., FragTof = -5000., FragBeta = -5000., FragBrho = -5000., FragLength = -5000.;
+    FragZ = NAN, FragAoQ = NAN, FragTof = NAN, FragBeta = NAN, FragBrho = NAN, FragLength = NAN;
     //
     /*
     if (fMappedItemsSci)
