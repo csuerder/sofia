@@ -1,5 +1,5 @@
 // ------------------------------------------------------------
-// -----                  R3BSofScalersOnlineSpectra           -----
+// -----            R3BSofScalersOnlineSpectra            -----
 // -----           Fill SOFIA online histograms           -----
 // ------------------------------------------------------------
 
@@ -10,6 +10,7 @@
 #include "R3BSofScalersOnlineSpectra.h"
 #include "R3BEventHeader.h"
 #include "R3BSofScalersMappedData.h"
+#include "R3BTrloiiData.h"
 #include "THttpServer.h"
 
 #include "FairLogger.h"
@@ -20,7 +21,7 @@
 #include "TCanvas.h"
 #include "TFolder.h"
 #include "TH1.h"
-#include "TH1I.h"
+#include "TH1D.h"
 #include "TH2F.h"
 #include "TVector3.h"
 
@@ -39,14 +40,18 @@
 R3BSofScalersOnlineSpectra::R3BSofScalersOnlineSpectra()
     : FairTask("SofScalersOnlineSpectra", 1)
     , fMappedItemsScalers(NULL)
+    , fMappedItemsTrloii(NULL)
     , fNEvents(0)
+    , read_trloii(false)
 {
 }
 
 R3BSofScalersOnlineSpectra::R3BSofScalersOnlineSpectra(const char* name, Int_t iVerbose)
     : FairTask(name, iVerbose)
     , fMappedItemsScalers(NULL)
+    , fMappedItemsTrloii(NULL)
     , fNEvents(0)
+    , read_trloii(false)
 {
 }
 
@@ -55,6 +60,8 @@ R3BSofScalersOnlineSpectra::~R3BSofScalersOnlineSpectra()
     LOG(INFO) << "R3BSofScalersOnlineSpectra::Delete instance";
     if (fMappedItemsScalers)
         delete fMappedItemsScalers;
+    if (read_trloii && fMappedItemsTrloii)
+        delete fMappedItemsTrloii;
 }
 
 InitStatus R3BSofScalersOnlineSpectra::Init()
@@ -78,6 +85,14 @@ InitStatus R3BSofScalersOnlineSpectra::Init()
     {
         return kFATAL;
     }
+    if (read_trloii)
+    {
+        fMappedItemsTrloii = (TClonesArray*)mgr->GetObject("TrloiiData");
+	if (!fMappedItemsTrloii)
+	{
+            return kFATAL;
+	}
+    }
 
     // --- ------------------------------- --- //
     // --- Create histograms for detectors --- //
@@ -85,6 +100,8 @@ InitStatus R3BSofScalersOnlineSpectra::Init()
     char Name1[255];
     char Name2[255];
     static int l_NbChannelsPerScaler[NbScalers] = NbChannelsPerScaler;
+    TString NameTrloii[3] = {"MAIN", "S2", "S8"};
+    TString NameScaler[4] = {"RAW", "BDT", "ADT", "ARD"};
 
     for (Int_t i = 0; i < NbScalers; i++)
     {
@@ -92,20 +109,26 @@ InitStatus R3BSofScalersOnlineSpectra::Init()
         sprintf(Name1, "SofScalers%i", i + 1);
         cScalersGeneralView[i] = new TCanvas(Name1, Name1, 10, 10, 800, 700);
 
-        sprintf(Name1, "SofScalers%i_GeneralView", i + 1);
-        fh1_GeneralView[i] = new TH1I(Name1, Name1, l_NbChannelsPerScaler[i] + 2, 0.5, l_NbChannelsPerScaler[i] + 2.5);
+	if(i < 2)
+	{
+            sprintf(Name1, "SofScalers%i_GeneralView", i + 1);
+	} else {
+	    sprintf(Name1, "Trloii Scaler %s %s", NameTrloii[(i - 2) / 4].Data(), NameScaler[(i - 2) % 4].Data());
+	}
+        fh1_GeneralView[i] = new TH1D(Name1, Name1, l_NbChannelsPerScaler[i] + 2, 0.5, l_NbChannelsPerScaler[i] + 2.5);
         fh1_GeneralView[i]->GetXaxis()->SetTitle("Channel number (starting from 1)");
         fh1_GeneralView[i]->GetYaxis()->SetTitle("Counts per bin");
         fh1_GeneralView[i]->GetXaxis()->CenterTitle(true);
         fh1_GeneralView[i]->GetYaxis()->CenterTitle(true);
-        fh1_GeneralView[i]->GetXaxis()->SetLabelSize(0.045);
-        fh1_GeneralView[i]->GetXaxis()->SetTitleSize(0.045);
-        fh1_GeneralView[i]->GetYaxis()->SetLabelSize(0.045);
-        fh1_GeneralView[i]->GetYaxis()->SetTitleSize(0.045);
+        fh1_GeneralView[i]->GetXaxis()->SetLabelSize(0.025);
+        fh1_GeneralView[i]->GetXaxis()->SetTitleSize(0.025);
+        fh1_GeneralView[i]->GetYaxis()->SetLabelSize(0.025);
+        fh1_GeneralView[i]->GetYaxis()->SetTitleSize(0.025);
 
         cScalersGeneralView[i]->cd();
         gPad->SetGridx(1);
-        // gPad->SetLogy(1);
+	if(i > 1)
+	    gPad->SetLogy(1);
         gPad->SetBottomMargin(10);
         fh1_GeneralView[i]->Draw("");
         fh1_GeneralView[i]->ls();
@@ -180,6 +203,25 @@ void R3BSofScalersOnlineSpectra::Exec(Option_t* option)
             fh1_GeneralView[hitmapped->GetScaler() - 1]->Fill(hitmapped->GetChannel(), hitmapped->GetValue());
         }
     }
+    if (read_trloii && fMappedItemsTrloii && fMappedItemsTrloii->GetEntriesFast())
+    {
+        // --- --------------------- --- //
+        // --- loop over mapped data --- //
+        // --- --------------------- --- //
+        for (Int_t ihit = 0; ihit < fMappedItemsTrloii->GetEntriesFast(); ihit++)
+        {
+            R3BTrloiiData* hitmapped = (R3BTrloiiData*)fMappedItemsTrloii->At(ihit);
+            if (!hitmapped)
+                continue;
+	    if (hitmapped->GetCounts() == 0)
+  	        continue;
+	    if (fTrloii[hitmapped->GetType() - 1][hitmapped->GetCh() - 1] == 0)
+	        fTrloii[hitmapped->GetType() - 1][hitmapped->GetCh() - 1] = hitmapped->GetCounts();
+	    ULong64_t offset = fTrloii[hitmapped->GetType() - 1][hitmapped->GetCh() - 1];
+            fh1_GeneralView[hitmapped->GetType() - 1 + 2]->Fill(hitmapped->GetCh(), hitmapped->GetCounts() - offset);
+	    LOG(DEBUG) << hitmapped->GetType() << " " << hitmapped->GetCh() << " " << hitmapped->GetCounts() << " " << offset;
+        }
+    }
     fNEvents += 1;
 }
 
@@ -189,11 +231,15 @@ void R3BSofScalersOnlineSpectra::FinishEvent()
     {
         fMappedItemsScalers->Clear();
     }
+    if (read_trloii && fMappedItemsTrloii)
+    {
+        fMappedItemsTrloii->Clear();
+    }
 }
 
 void R3BSofScalersOnlineSpectra::FinishTask()
 {
-    if (fMappedItemsScalers)
+    if (fMappedItemsScalers && (!read_trloii ||  fMappedItemsTrloii))
     {
         for (UShort_t i = 0; i < NbScalers; i++)
         {
