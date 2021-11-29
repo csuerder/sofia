@@ -166,7 +166,7 @@ class R3BSofFrsFragmentTree : public FairTask
     Float_t MusicZ_S2_S8 = NAN, Tof_wTref_S2_S8 = NAN, Beta_S2_S8 = NAN, Brho_S2_S8 = NAN;
     Float_t MusicZ_S8_Cave = NAN, Tof_wTref_S8_Cave = NAN, Beta_S8_Cave = NAN, Brho_S8_Cave = NAN;
     Float_t AoQ_S2_Cave = NAN, AoQ_S2_S8 = NAN, AoQ_S8_Cave = NAN;
-    Float_t TheBeta = NAN, TheGamma = NAN, TheBrho = NAN, TheAoQ = NAN;
+    Float_t FRSBeta = NAN, FRSGamma = NAN, FRSBrho = NAN, FRSAoQ = NAN;
     Float_t FragZ = NAN, FragTof = NAN, FragAoQ = NAN, FragBeta = NAN, FragBrho = NAN, FragLength = NAN;
     
   public:

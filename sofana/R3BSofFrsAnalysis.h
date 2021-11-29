@@ -110,10 +110,10 @@ class R3BSofFrsAnalysis : public FairTask
     UChar_t fNumMusicParams;
     TArrayF* CalZParams;
     Float_t fZ0 = 0., fZ1 = 0. , fZ2 = 0.; // CalibPar for R3BMUSIC
-    Double_t MusicZ = -5000., MusicE = -5000.;
+    Double_t MusicZ = NAN, MusicE = NAN;
     
     Double_t* xpos;
-    Float_t Tof_wTref_S2_Cave = -5000., Tof_wTref_S2_S8 = -5000., Tof_wTref_S8_Cave = -5000.;
+    Float_t Tof_wTref_S2_Cave = NAN, Tof_wTref_S2_S8 = NAN, Tof_wTref_S8_Cave = NAN;
     
     /** Private method FrsData **/
     //** Adds a FrsData to the analysis

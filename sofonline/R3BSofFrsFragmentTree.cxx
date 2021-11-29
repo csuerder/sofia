@@ -251,10 +251,16 @@ InitStatus R3BSofFrsFragmentTree::Init()
     Tree->Branch("xs2", &xs2);
     Tree->Branch("xpos", xpos, "xpos[3]/F");
     //
-    Tree->Branch("TheBeta", &TheBeta);
-    Tree->Branch("TheGamma", &TheGamma);
-    Tree->Branch("TheBrho", &TheBrho);
-    Tree->Branch("TheAoQ", &TheAoQ);
+    Tree->Branch("FRSBeta", &FRSBeta);
+    Tree->Branch("FRSGamma", &FRSGamma);
+    Tree->Branch("FRSBrho", &FRSBrho);
+    Tree->Branch("FRSAoQ", &FRSAoQ);
+    //
+    // Obsolete but just for compatibility
+    Tree->Branch("TheBeta", &FRSBeta);
+    Tree->Branch("TheGamma", &FRSGamma);
+    Tree->Branch("TheBrho", &FRSBrho);
+    Tree->Branch("TheAoQ", &FRSAoQ);
     //
     Tree->Branch("Tof_wTref_S2_Cave", &Tof_wTref_S2_Cave);
     Tree->Branch("Beta_S2_Cave", &Beta_S2_Cave);
@@ -396,28 +402,37 @@ void R3BSofFrsFragmentTree::Exec(Option_t* option)
         }
     } // End of the loop to obtain FrsData
 
+    /*
     if (Beta_S2_Cave > 0.)
     {
-        TheBeta = Beta_S2_Cave;
-        TheBrho = Brho_S2_Cave;
-        TheAoQ = AoQ_S2_Cave;
+        FRSBeta = Beta_S2_Cave;
+        FRSBrho = Brho_S2_Cave;
+        FRSAoQ = AoQ_S2_Cave;
         MusicZ = MusicZ_S2_Cave;
     }
     else if (Beta_S2_S8 > 0.)
     {
-        TheBeta = Beta_S2_S8;
-        TheBrho = Brho_S2_S8;
-        TheAoQ = AoQ_S2_S8;
+        FRSBeta = Beta_S2_S8;
+        FRSBrho = Brho_S2_S8;
+        FRSAoQ = AoQ_S2_S8;
         MusicZ = MusicZ_S2_S8;
     }
     else if (Beta_S8_Cave > 0.)
     {
-        TheBeta = Beta_S8_Cave;
-        TheBrho = Brho_S8_Cave;
-        TheAoQ = AoQ_S8_Cave;
+        FRSBeta = Beta_S8_Cave;
+        FRSBrho = Brho_S8_Cave;
+        FRSAoQ = AoQ_S8_Cave;
         MusicZ = MusicZ_S8_Cave;
     }
-    TheGamma = 1. / TMath::Sqrt(1 - TheBeta * TheBeta);
+    */
+    if (Beta_S2_Cave > 0. && Beta_S8_Cave > 0. && abs(Beta_S2_Cave - Beta_S8_Cave) < 0.01)
+    {
+        FRSBeta = Beta_S2_Cave;
+        FRSBrho = Brho_S2_Cave;
+        FRSAoQ = AoQ_S2_Cave;
+        MusicZ = MusicZ_S2_Cave;
+	FRSGamma = 1. / TMath::Sqrt(1 - FRSBeta * FRSBeta);
+    }
 
     if (fTwimHitItems && fTwimHitItems->GetEntriesFast() > 0)
     {
@@ -432,9 +447,9 @@ void R3BSofFrsFragmentTree::Exec(Option_t* option)
         }
     }
 
-    if (TheBeta > 0. && TwimE > 0.)
+    if (FRSBeta > 0. && TwimE > 0.)
     {
-        TwimZ = fTwimZ0 + fTwimZ1 * TMath::Sqrt(TwimE) * TheBeta + fTwimZ2 * TwimE * TheBeta * TheBeta;
+        TwimZ = fTwimZ0 + fTwimZ1 * TMath::Sqrt(TwimE) * FRSBeta + fTwimZ2 * TwimE * FRSBeta * FRSBeta;
     }
 
     // --- -------------- --- //
@@ -566,10 +581,7 @@ void R3BSofFrsFragmentTree::Exec(Option_t* option)
         FragBeta = hit->GetBeta();
         FragBrho = hit->GetBrho();
         FragLength = hit->GetLength();
-        //FragTof = FragLength / FragBeta;
-        //Tofw_Paddle = hit->GetPaddle();
     }
-    // LOG(INFO) << MusicZ << " " << FragZ;
     Tree->Fill();
 }
 
@@ -609,7 +621,7 @@ void R3BSofFrsFragmentTree::FinishEvent()
     MusicZ_S8_Cave = NAN;
     Tof_wTref_S8_Cave = NAN, Beta_S8_Cave = NAN, Brho_S8_Cave = NAN;
     AoQ_S2_Cave = NAN, AoQ_S2_S8 = NAN, AoQ_S8_Cave = NAN;
-    TheBeta = NAN, TheGamma = NAN, TheBrho = NAN, TheAoQ = NAN;
+    FRSBeta = NAN, FRSGamma = NAN, FRSBrho = NAN, FRSAoQ = NAN;
     Tofw_Y = NAN;
     Tofw_Paddle = 0;
     FragZ = NAN, FragAoQ = NAN, FragTof = NAN, FragBeta = NAN, FragBrho = NAN, FragLength = NAN;

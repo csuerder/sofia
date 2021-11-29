@@ -310,9 +310,19 @@ void R3BSofFragmentAnalysis::Exec(Option_t* option)
     }
     //
     // Calculate brho and aoq
+    /*
     Double_t Dispersion_MW3 = mw[3][0] -120.342308 - TwimTheta *(5685.146295) -4.625269 - (mw[1][0]+mw[2][0])/2. *(0.571696)-1.241102;
       // - (mw[3][1]-mw[1][1]) *(-0.056444))+ (- (10.569345) - (mw[1][1]+mw[2][1])/2. *(0.764638)) // Y correction is not used.
     Brho_Cave = (Dispersion_MW3 +1282.411556)/141.549357;
+    */
+    Double_t x_in = (mw[1][0] + mw[2][0])/2.;
+    Double_t theta_in = TwimTheta;
+    Double_t x_out = mw[3][0];
+    //Double_t theta_out = 0;
+    if(fFragPar->GetNumBrhoParameters() < 4)
+        return;
+    Brho_Cave = fFragPar->GetBrhoParameter(0) + fFragPar->GetBrhoParameter(1) * x_in
+      + fFragPar->GetBrhoParameter(2) * theta_in + fFragPar->GetBrhoParameter(3) * x_out;
     fAq = Brho_Cave / (3.10716 * Beta * gamma); //  m_u * c_0 / e = 3.107
     
     // Fill the data

@@ -270,14 +270,14 @@ void R3BSofFrsAnalysis::Exec(Option_t* option)
     }
     for (Int_t i = 0; i < fNbTof; i++)
     {
-        Double_t tof = -5000.;
+        Double_t tof = NAN;
         if (fStaId[i] == fIdS2 && fStoId[i] == fIdCave)
             tof = Tof_wTref_S2_Cave;
-        if (fStaId[i] == fIdS2 && fStoId[i] == fIdS8)
+        else if (fStaId[i] == fIdS2 && fStoId[i] == fIdS8)
             tof = Tof_wTref_S2_S8;
-        if (fStaId[i] == fIdS8 && fStoId[i] == fIdCave)
+        else if (fStaId[i] == fIdS8 && fStoId[i] == fIdCave)
             tof = Tof_wTref_S8_Cave;
-        if (tof < 0)
+        if (isnan(tof) || tof < 0)
             continue;
         Double_t beta = fPathLength[i] / (tof + fTofOffset[i]); // ToFCalib
         Double_t gamma = 1. / (TMath::Sqrt(1. - beta * beta));
@@ -286,7 +286,10 @@ void R3BSofFrsAnalysis::Exec(Option_t* option)
         if (beta > 0.)
         {
             MusicZ = fZ0 + fZ1 * TMath::Sqrt(MusicE) * beta + fZ2 * MusicE * beta * beta;
-        }
+        }else
+	{
+	    MusicZ = NAN;
+	}
         AddData(fStaId[i], fStoId[i], MusicZ, aoq, beta, brho, xpos[fIdS2 - 1], xpos[fIdCave - 1]);
     }
     return;
@@ -312,10 +315,10 @@ void R3BSofFrsAnalysis::Reset()
         fFrsDataCA->Clear();
 
     for (Int_t i = 0; i < fNbSci; i++)
-        xpos[i] = -5000.;
-    Tof_wTref_S2_Cave = -5000., Tof_wTref_S2_S8 = -5000., Tof_wTref_S8_Cave = -5000.;
-    MusicZ = -5000.;
-    MusicE = -5000.;
+        xpos[i] = NAN;
+    Tof_wTref_S2_Cave = NAN, Tof_wTref_S2_S8 = NAN, Tof_wTref_S8_Cave = NAN;
+    MusicZ = NAN;
+    MusicE = NAN;
 }
 
 // -----   Private method AddData  --------------------------------------------

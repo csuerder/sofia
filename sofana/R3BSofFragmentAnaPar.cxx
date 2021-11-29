@@ -9,10 +9,12 @@
 R3BSofFragmentAnaPar::R3BSofFragmentAnaPar(const TString& name, const TString& title, const TString& context)
     : FairParGenericSet(name, title, context)
     , fNumSci(28)
+    , fNumBrhoParam(4)
 {
     fIn_use = new TArrayI(fNumSci);
     fTofW_Offset = new TArrayF(fNumSci);
     fEffective_Length = new TArrayF(fNumSci);
+    fBrhoParameter = new TArrayF(fNumBrhoParam);
 }
 
 // ----  Destructor ------------------------------------------------------------
@@ -25,6 +27,8 @@ R3BSofFragmentAnaPar::~R3BSofFragmentAnaPar()
         delete fTofW_Offset;
     if (fEffective_Length)
         delete fEffective_Length;
+    if (fBrhoParameter)
+        delete fBrhoParameter;
 }
 
 // ----  Method clear ----------------------------------------------------------
@@ -52,6 +56,10 @@ void R3BSofFragmentAnaPar::putParams(FairParamList* list)
     list->add("tofwOffset", *fTofW_Offset);
     fEffective_Length->Set(array_sci);
     list->add("tofwEffectiveLength", *fEffective_Length);
+
+    list->add("NumBrhoParam", fNumBrhoParam);
+    fBrhoParameter->Set(fNumBrhoParam);
+    list->add("BrhoParameter", *fBrhoParameter);
 }
 
 // ----  Method getParams ------------------------------------------------------
@@ -91,6 +99,19 @@ Bool_t R3BSofFragmentAnaPar::getParams(FairParamList* list)
         return kFALSE;
     }
 
+    if (!list->fill("NumBrhoParam", &fNumBrhoParam))
+    {
+        return kFALSE;
+    }
+
+    LOG(INFO) << "Nb BrhoParam: " << fNumBrhoParam;
+    fBrhoParameter->Set(fNumBrhoParam);
+    if (!(list->fill("BrhoParameter", fBrhoParameter)))
+    {
+        LOG(INFO) << "---Could not initialize BrhoParameter";
+        return kFALSE;
+    }
+
     return kTRUE;
 }
 
@@ -106,4 +127,13 @@ void R3BSofFragmentAnaPar::printParams()
         LOG(INFO) << "Sci " << s + 1 << " in use " << fIn_use->GetAt(s) << ", Position: " << fTofW_Offset->GetAt(s)
                   << ", Tof: " << fEffective_Length->GetAt(s);
     }
+
+    LOG(INFO) << "R3BSofFragmentAnaPar: " << fNumBrhoParam << " parameters for Brho reconstruction in use: ";
+
+    for (Int_t s = 0; s < fNumBrhoParam; s++)
+    {
+
+        LOG(INFO) << "Param" << s << ": " << fBrhoParameter->GetAt(s);
+    }
+
 }
