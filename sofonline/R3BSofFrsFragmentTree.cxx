@@ -249,7 +249,7 @@ InitStatus R3BSofFrsFragmentTree::Init()
     Tree->Branch("TwimZ", &TwimZ);
     Tree->Branch("TwimTheta", &TwimTheta);
     Tree->Branch("xs2", &xs2);
-    Tree->Branch("xpos", xpos, "xpos[3]/F");
+    //Tree->Branch("xpos", xpos, "xpos[3]/F");
     //
     Tree->Branch("FRSBeta", &FRSBeta);
     Tree->Branch("FRSGamma", &FRSGamma);
@@ -372,7 +372,7 @@ void R3BSofFrsFragmentTree::Exec(Option_t* option)
                 Brho_S2_Cave = hit->GetBrho();
                 AoQ_S2_Cave = hit->GetAq();
                 MusicZ_S2_Cave = hit->GetZ();
-                if (xs2 < -1000.)
+                if (isnan(xs2))
                     xs2 = hit->GetXS2();
             }
             else if (hit->GetStoId() == fIdS8)
@@ -381,7 +381,7 @@ void R3BSofFrsFragmentTree::Exec(Option_t* option)
                 Brho_S2_S8 = hit->GetBrho();
                 AoQ_S2_S8 = hit->GetAq();
                 MusicZ_S2_S8 = hit->GetZ();
-                if (xs2 < -1000.)
+                if (isnan(xs2))
                     xs2 = hit->GetXS2();
             }
             else
@@ -425,7 +425,7 @@ void R3BSofFrsFragmentTree::Exec(Option_t* option)
         MusicZ = MusicZ_S8_Cave;
     }
     */
-    if (Beta_S2_Cave > 0. && Beta_S8_Cave > 0. && abs(Beta_S2_Cave - Beta_S8_Cave) < 0.01)
+    if (Beta_S2_Cave > 0. && Beta_S8_Cave > 0. && TMath::Abs(Beta_S2_Cave - Beta_S8_Cave) < 0.01)
     {
         FRSBeta = Beta_S2_Cave;
         FRSBrho = Brho_S2_Cave;

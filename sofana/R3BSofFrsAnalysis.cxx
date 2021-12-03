@@ -145,6 +145,12 @@ void R3BSofFrsAnalysis::SetParameter()
     }
     fS2SciCoef0 = fFrs_Par->GetS2PosOffset();
     fS2SciCoef1 = fFrs_Par->GetS2PosCoef();
+    fNumBrhoCorrPar = fFrs_Par->GetNumBrhoCorrPar();
+    fBrhoCorrPar = new Float_t[fNumBrhoCorrPar];
+    for (Int_t i = 0; i < fNumBrhoCorrPar; i++)
+    {
+        fBrhoCorrPar[i] = fFrs_Par->GetBrhoCorrPar(i);
+    }
 }
 
 // -----   Public method Init   --------------------------------------------
@@ -281,8 +287,15 @@ void R3BSofFrsAnalysis::Exec(Option_t* option)
             continue;
         Double_t beta = fPathLength[i] / (tof + fTofOffset[i]); // ToFCalib
         Double_t gamma = 1. / (TMath::Sqrt(1. - beta * beta));
-        Double_t brho = fBrho0 * (1 + (fUseS2x[i] != 0 ? xpos[fIdS2 - 1] : 0.) / 726.);
-        Double_t aoq = brho / (3.10716 * gamma * beta);
+	Double_t correction = 1.;
+	if(fUseS2x[i] != 0 && fNumBrhoCorrPar > 0)
+	  {
+	    for(Int_t j = 0; j < fNumBrhoCorrPar; j++)
+	      correction -= pow(xpos[fIdS2 - 1], j) * fBrhoCorrPar[j];
+	  }
+	Double_t brho = fBrho0 * correction;// * (1 + (fUseS2x[i] != 0 ? xpos[fIdS2 - 1] : 0.) / 726.);
+	Double_t aoq = brho / (3.10716 * gamma * beta);
+	//LOG(INFO) << correction << " " << brho << " "<< fBrho0;
         if (beta > 0.)
         {
             MusicZ = fZ0 + fZ1 * TMath::Sqrt(MusicE) * beta + fZ2 * MusicE * beta * beta;

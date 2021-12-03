@@ -105,6 +105,8 @@ class R3BSofFrsAnalysis : public FairTask
     Double_t* fTofOffset;
     Int_t* fUseS2x;
     Double_t fS2SciCoef0, fS2SciCoef1;
+    Int_t fNumBrhoCorrPar;
+    Float_t* fBrhoCorrPar;
 
     // Parameter containers for R3BMusicPar
     UChar_t fNumMusicParams;
