@@ -242,10 +242,11 @@ InitStatus R3BSofFrsFragmentTree::Init()
     Tree->Branch("fNEvents", &fNEvents);
     Tree->Branch("tpat", &tpat);
     Tree->Branch("trigger", &trigger);
-    // Tree->Branch("MusicE", &MusicE);
+    Tree->Branch("MusicE", &MusicE);
     Tree->Branch("MusicZ", &MusicZ);
     Tree->Branch("MusicTheta", &MusicTheta);
     // Tree->Branch("TwimE", &TwimE);
+    Tree->Branch("TwimE", &TwimE);
     Tree->Branch("TwimZ", &TwimZ);
     Tree->Branch("TwimTheta", &TwimTheta);
     Tree->Branch("xs2", &xs2);
