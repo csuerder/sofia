@@ -68,7 +68,7 @@ R3BSofFrsFragmentTree::~R3BSofFrsFragmentTree()
     if (fSingleTcalItemsSci)
     delete fSingleTcalItemsSci;*/
     if (fMusHitItems)
-      delete fMusHitItems;
+        delete fMusHitItems;
     if (fTwimHitItems)
         delete fTwimHitItems;
     /*    if (fMusCalItems)
@@ -98,7 +98,7 @@ InitStatus R3BSofFrsFragmentTree::Init()
         LOG(FATAL) << "R3BSofFrsFragmentTree::Init FairRootManager not found";
     header = (R3BEventHeader*)mgr->GetObject("R3BEventHeader");
     if (!header)
-      header = (R3BEventHeader*)mgr->GetObject("EventHeader.");
+        header = (R3BEventHeader*)mgr->GetObject("EventHeader.");
 
     // Reading MusicCalPar from FairRuntimeDb
     FairRuntimeDb* rtdb = FairRuntimeDb::instance();
@@ -120,7 +120,7 @@ InitStatus R3BSofFrsFragmentTree::Init()
     {
         return kFATAL;
     }
-    std::cout<<std::endl<<  __cplusplus << std::endl;
+    std::cout << std::endl << __cplusplus << std::endl;
     /*
     // --- ------------------------------------ --- //
     // --- get access to mapped data of the SCI --- //
@@ -149,7 +149,7 @@ InitStatus R3BSofFrsFragmentTree::Init()
         return kFATAL;
     }
     */
-    
+
     // get access to hit data of the MUSIC
     fMusHitItems = (TClonesArray*)mgr->GetObject("MusicHitData");
     if (!fMusHitItems)
@@ -250,7 +250,7 @@ InitStatus R3BSofFrsFragmentTree::Init()
     Tree->Branch("TwimZ", &TwimZ);
     Tree->Branch("TwimTheta", &TwimTheta);
     Tree->Branch("xs2", &xs2);
-    //Tree->Branch("xpos", xpos, "xpos[3]/F");
+    // Tree->Branch("xpos", xpos, "xpos[3]/F");
     //
     Tree->Branch("FRSBeta", &FRSBeta);
     Tree->Branch("FRSGamma", &FRSGamma);
@@ -327,25 +327,24 @@ void R3BSofFrsFragmentTree::Exec(Option_t* option)
         }
     }
     */
-    
+
     // --- -------------- --- //
     // --- MUSIC Hit data --- //
     // --- -------------- --- //
     if (fMusHitItems && fMusHitItems->GetEntriesFast() > 0)
-      {
+    {
         nHits = fMusHitItems->GetEntriesFast();
         for (Int_t ihit = 0; ihit < nHits; ihit++)
-      {
+        {
             R3BMusicHitData* hit = (R3BMusicHitData*)fMusHitItems->At(ihit);
             if (!hit)
-          continue;
+                continue;
             MusicE = hit->GetEave();
-	    MusicTheta = hit ->GetTheta();
-        //MusicZ = hit->GetZcharge();
-      }
-      }
+            MusicTheta = hit->GetTheta();
+            // MusicZ = hit->GetZcharge();
+        }
+    }
     //
-    
 
     // --- -------------- --- //
     // --- Frs Ana data --- //
@@ -432,7 +431,7 @@ void R3BSofFrsFragmentTree::Exec(Option_t* option)
         FRSBrho = Brho_S2_Cave;
         FRSAoQ = AoQ_S2_Cave;
         MusicZ = MusicZ_S2_Cave;
-	FRSGamma = 1. / TMath::Sqrt(1 - FRSBeta * FRSBeta);
+        FRSGamma = 1. / TMath::Sqrt(1 - FRSBeta * FRSBeta);
     }
 
     if (fTwimHitItems && fTwimHitItems->GetEntriesFast() > 0)
@@ -444,7 +443,7 @@ void R3BSofFrsFragmentTree::Exec(Option_t* option)
             if (!Twimhit)
                 continue;
             TwimE = Twimhit->GetEave();
-	    TwimTheta = Twimhit ->GetTheta();
+            TwimTheta = Twimhit->GetTheta();
         }
     }
 
@@ -556,7 +555,7 @@ void R3BSofFrsFragmentTree::Exec(Option_t* option)
             Mw3_Y = Mwpc3hit->GetY();
         }
     }
-    
+
     if (fTofWHitDataCA && fTofWHitDataCA->GetEntriesFast() > 0)
     {
         nHits = fTofWHitDataCA->GetEntriesFast();
@@ -568,7 +567,7 @@ void R3BSofFrsFragmentTree::Exec(Option_t* option)
             FragTof = Tofwhit->GetTof();
             Tofw_Y = Tofwhit->GetY();
             Tofw_Paddle = Tofwhit->GetPaddle();
-	}
+        }
     }
 
     nHits = fFragData->GetEntriesFast();

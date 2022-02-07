@@ -4,7 +4,7 @@ test "$1" == "--autofix" && AUTOFIX=1 && shift
 CLANG_FORMAT=${1:-clang-format}
 
 echo -n "Running clang-format checks, version: "
-${CLANG_FORMAT} --version
+#${CLANG_FORMAT} --version
 
 if [ 0 != $? ]; then
     echo -e "\033[1;31mclang-format missing: ${CLANG_FORMAT}\033[0m"

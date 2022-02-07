@@ -46,7 +46,7 @@ CHANGE_FILE_EXTENSION(*.cxx *.h HEADERS "${SRCS}")
 set(LINKDEF SofSciLinkDef.h)
 set(LIBRARY_NAME R3BSofSci)
 set(DEPENDENCIES
-    R3Bbase R3BSofData R3BSofTcal)
+    R3BBase R3BSofData R3BSofTcal)
 
 if(FAIRDB_FOUND)
 set(DEPENDENCIES

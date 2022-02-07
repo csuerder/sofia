@@ -17,12 +17,12 @@ using std::endl;
 // ---- Standard Constructor ---------------------------------------------------
 R3BSofSciRawPosPar::R3BSofSciRawPosPar(const char* name, const char* title, const char* context)
     : FairParGenericSet(name, title, context)
-    , fNumDets(0)
-    , fNumPmts(0)
-    , fNumSignals(0)
-    , fNumParsPerSignal(0)
+    , fNumDets(4)
+    , fNumPmts(3)
+    , fNumSignals(4)
+    , fNumParsPerSignal(2)
 {
-    fAllSignalsRawPosParams = new TArrayF(MAX_RAWPOSPAR);
+    fAllSignalsRawPosParams = new TArrayF(fNumSignals * fNumParsPerSignal);
 }
 
 // ----  Destructor ------------------------------------------------------------

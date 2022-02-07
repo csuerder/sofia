@@ -42,6 +42,6 @@ CHANGE_FILE_EXTENSION(*.cxx *.h HEADERS "${SRCS}")
 set(LINKDEF SofTofWLinkDef.h)
 set(LIBRARY_NAME R3BSofTofW)
 set(DEPENDENCIES
-    Base R3Bbase R3BData R3BSofData R3BSofTcal R3BTracking)
+    Base R3BBase R3BData R3BSofData R3BSofTcal R3BTracking)
 
 GENERATE_LIBRARY()
