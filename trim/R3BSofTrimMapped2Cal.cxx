@@ -80,12 +80,13 @@ void R3BSofTrimMapped2Cal::SetParContainers()
                       << fCal_Par->GetNumAnodes();
         LOG(INFO) << "R3BSofTrimMapped2CalPar:: trimCalPar container open";
     }
+    return;
 }
 
 // -----   Public method Init   --------------------------------------------
 InitStatus R3BSofTrimMapped2Cal::Init()
 {
-    LOG(INFO) << "R3BSofTrimMapped2Cal: Init";
+    LOG(INFO) << "R3BSofTrimMapped2Cal::Init()";
 
     FairRootManager* rootManager = FairRootManager::Instance();
     if (!rootManager)
@@ -103,18 +104,10 @@ InitStatus R3BSofTrimMapped2Cal::Init()
     }
 
     // --- --------------- --- //
-    // --- OUTPUT L DATA --- //
+    // --- OUTPUT CAL DATA --- //
     // --- --------------- --- //
     fTrimCalData = new TClonesArray("R3BSofTrimCalData", MAX_MULT_TRIM_CAL * 8);
-
-    if (!fOnline)
-    {
-        rootManager->Register("TrimCalData", "Trim Cal", fTrimCalData, kTRUE);
-    }
-    else
-    {
-        rootManager->Register("TrimCalData", "Trim Cal", fTrimCalData, kFALSE);
-    }
+    rootManager->Register("TrimCalData", "Trim Cal", fTrimCalData, !fOnline);
 
     return kSUCCESS;
 }
@@ -197,6 +190,7 @@ void R3BSofTrimMapped2Cal::Exec(Option_t* option)
                         esub = (Float_t)iEraw[a + fNumChannels * s][i] - fCal_Par->GetEnergyPedestal(s + 1, a + 1);
                         ematch = esub * fCal_Par->GetEnergyMatchGain(s + 1, a + 1);
                         AddCalData(s + 1, a + 1, dtraw, dtal, esub, ematch);
+                        // std::cout << "Add Cal Data: s=" << s+1 << ", a=" << a+1<< ", ematch=" << ematch << std::endl;
                     }
                 } // end of check that anode has data
             }     // end of loop over the anodes

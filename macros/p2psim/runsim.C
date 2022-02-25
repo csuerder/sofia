@@ -1,68 +1,89 @@
-//--------------------------------------------------------------------
-//
-// Define the SOFIA simulation setup for p2p-fission experiments
-// Author: <joseluis.rodriguez.sanchez@usc.es>
-//
-// Last Update: 26/12/19
-// Comments:
-//         - 29/10/19 : Initial setup
-//         - 26/12/19 : Added new califa tasks and mwpc0 geometry
-//         - 05/01/21 : Added container with detector parameters
-//
-//--------------------------------------------------------------------
+/** --------------------------------------------------------------------
+ **
+ **  Define the SOFIA simulation setup for p2p-fission experiments
+ **  Author: <joseluis.rodriguez.sanchez@usc.es>
+ **
+ **  Last Update: 26/12/19
+ **  Comments:
+ **         - 29/10/19 : Initial setup
+ **         - 26/12/19 : Added new califa tasks and mwpc0 geometry
+ **         - 05/01/21 : Added container with detector parameters
+ **
+ **  Configuration:
+ **  (1) Select the right generator "fGenerator"
+ **  (2) Select the detectors that you wish for the simulation, for instance, "fCalifa = true"
+ **  (3) Look at the file "s455_setup.par" that the positions of your detectors are right
+ **
+ **  Execute it as follows:
+ **  root -l 'runsim.C(1000)'
+ **  where 1000 means the number of events
+ **
+ **/
 
 void runsim(Int_t nEvents = 0)
 {
-    // =========== Configuration area =============================
+    // ----------- Configuration area ----------------------------------
 
     TString OutFile = "sim.root"; // Output file for data
     TString ParFile = "par.root"; // Output file for params
 
-    Bool_t fVis = false;             // Store tracks for visualization
+    Bool_t fVis = true;             // Store tracks for visualization
     Bool_t fUserPList = false;      // Use of R3B special physics list
     Bool_t fR3BMagnet = false;      // Magnetic field definition
     Bool_t fCalifaDigitizer = true; // Apply hit digitizer task
     Bool_t fCalifaHitFinder = true; // Apply hit finder task
+    Bool_t fSofiaDigitizer = true;  // Apply hit digitizer task
 
-    // MonteCarlo engine: TGeant3, TGeant4, TFluka
+    // MonteCarlo engine: TGeant4, TFluka           --------------------
     TString fMC = "TGeant4";
 
-    // Event generator type: box, gammas, r3b, ion, ascii
+    // Event generator type: box for particles or ascii&inclroot for p2p-fission
     TString generator1 = "box";
     TString generator2 = "ascii";
-    TString generator3 = "r3b";
-    TString fGenerator = generator1;
+    TString generator3 = "inclroot";
+    TString fGenerator = generator2;
 
     // Input event file in the case of ascii generator
-    //TString fEventFile = "p2p_238U.txt";
-    TString fEventFile = "p2p_U238_500.txt";
+    TString fEventFile;
+    if (fGenerator.CompareTo("ascii") == 0)
+        fEventFile = "p2p_U238_500.txt";
+    else if (fGenerator.CompareTo("inclroot") == 0)
+        fEventFile = "p_U236_650.root";
 
     Int_t fFieldMap = -1;          // Magentic field map selector
     Double_t fMeasCurrent = 2000.; // Magnetic field current
-    Float_t fFieldScale = -1.;     // Magnetic field scale factor
+    Float_t fFieldScale = -0.82;   // Magnetic field scale factor
 
-    // ---------------  Detector selection: true - false ----------------------
+    // ---------  Detector selection: true - false ---------------------
     // ---- R3B and SOFIA detectors as well as passive elements
 
-    Bool_t fR3BMusic = true; // R3B Music Detector
+    Bool_t fR3BMusic = false; // R3B Music Detector
     TString fR3BMusicGeo = "music_s467.geo.root";
+
+    Bool_t fR3BTripleMusic = true; // R3B Triple-Music Detector
+    TString fR3BTripleMusicGeo = "trim_v21.geo.root";
 
     Bool_t fMwpc0 = true; // MWPC0 Detector
     TString fMwpc0Geo = "mwpc_0.geo.root";
 
+    Bool_t fSciStart = true; // Start Detector
+    TString fSciStartGeo = "sof_sci_v21.geo.root";
+
     Bool_t fTracker = true; // AMS-Tracker + Vacuum chamber + LH2 target
-    TString fTrackerGeo = "targetvacuumchamber_ams_s455.geo.root";
+    TString fTrackerGeo = "target_area_s455_v21.geo.root";
 
     Bool_t fCalifa = true; // Califa Calorimeter
     TString fCalifaGeo = "califa_2020.geo.root";
     Int_t fCalifaGeoVer = 2020;
-    Double_t fCalifaNonU = 1.0; // Non-uniformity: 1 means +-1% max deviation
+    Double_t fCalifaCryTh = 0.000080;  // In GeV: 0.000080 means 80 keV per crystal
+    Double_t fCalifaHitEnergyTh = 0.0; // Threshold in GeV per cluster hit
+    Double_t fCalifaNonU = 1.0;        // Non-uniformity: 1 means +-1% max deviation
 
     Bool_t fMwpc1 = true; // MWPC1 Detector
     TString fMwpc1Geo = "mwpc_1.geo.root";
 
     Bool_t fTwim = true; // Twin-Music Detector
-    TString fTwimGeo = "twinmusic_v19a.geo.root";
+    TString fTwimGeo = "twinmusic_v21.geo.root";
 
     Bool_t fMwpc2 = true; // MWPC2 Detector
     TString fMwpc2Geo = "mwpc_2.geo.root";
@@ -77,7 +98,7 @@ void runsim(Int_t nEvents = 0)
     TString fMwpc3Geo = "mwpc_3.geo.root";
 
     Bool_t fSofTofWall = true; // Sofia ToF-Wall
-    TString fSofTofWallGeo = "sof_tof_v19.geo.root";
+    TString fSofTofWallGeo = "sof_tof_v21.geo.root";
 
     Bool_t fNeuLand = false; // NeuLand Detector
     TString fNeuLandGeo = "neuland_v12a_14m.geo.root";
@@ -97,10 +118,6 @@ void runsim(Int_t nEvents = 0)
     gSystem->Setenv("CONFIG_DIR", r3b_confdir.Data());
     r3b_confdir.ReplaceAll("//", "/");
 
-    char str[1000];
-    sprintf(str, "GEOMPATH=%s/sofia/geometry", dir.Data());
-    putenv(str);
-
     // ----    Debug option   -------------------------------------------------
     gDebug = 0;
 
@@ -112,6 +129,8 @@ void runsim(Int_t nEvents = 0)
     FairRunSim* run = new FairRunSim();
     run->SetName(fMC);                           // Transport engine
     run->SetSink(new FairRootFileSink(OutFile)); // Output file
+
+    // -----   Runtime data base   --------------------------------------------
     FairRuntimeDb* rtdb = run->GetRuntimeDb();
 
     // -----   Load detector parameters    ------------------------------------
@@ -119,15 +138,39 @@ void runsim(Int_t nEvents = 0)
     parIo1->open("s455_setup.par", "in");
     rtdb->setFirstInput(parIo1);
     rtdb->print();
+
     // ----- Containers
-    R3BTGeoPar* mwpc0Par = (R3BTGeoPar*)rtdb->getContainer("mwpc0GeoPar");
-    R3BTGeoPar* targetPar = (R3BTGeoPar*)rtdb->getContainer("TargetGeoPar");
-    R3BTGeoPar* califaPar = (R3BTGeoPar*)rtdb->getContainer("CalifaGeoPar");
-    R3BTGeoPar* mwpc1Par = (R3BTGeoPar*)rtdb->getContainer("mwpc1GeoPar");
-    R3BTGeoPar* twimPar = (R3BTGeoPar*)rtdb->getContainer("twimGeoPar");
-    R3BTGeoPar* mwpc2Par = (R3BTGeoPar*)rtdb->getContainer("mwpc2GeoPar");
-    R3BTGeoPar* mwpc3Par = (R3BTGeoPar*)rtdb->getContainer("mwpc3GeoPar");
-    R3BTGeoPar* tofwPar = (R3BTGeoPar*)rtdb->getContainer("tofwGeoPar");
+    R3BTGeoPar* mwpc0Par = NULL;
+    R3BTGeoPar* trimPar = NULL;
+    R3BTGeoPar* scistartPar = NULL;
+    R3BTGeoPar* targetPar = NULL;
+    R3BTGeoPar* califaPar = NULL;
+    R3BTGeoPar* mwpc1Par = NULL;
+    R3BTGeoPar* twimPar = NULL;
+    R3BTGeoPar* mwpc2Par = NULL;
+    R3BTGeoPar* mwpc3Par = NULL;
+    R3BTGeoPar* tofwPar = NULL;
+
+    targetPar = (R3BTGeoPar*)rtdb->getContainer("TargetGeoPar");
+    if (fMwpc0)
+        mwpc0Par = (R3BTGeoPar*)rtdb->getContainer("Mwpc0GeoPar");
+    if (fR3BTripleMusic)
+        trimPar = (R3BTGeoPar*)rtdb->getContainer("TrimGeoPar");
+    if (fSciStart)
+        scistartPar = (R3BTGeoPar*)rtdb->getContainer("SofSciGeoPar");
+    if (fCalifa)
+        califaPar = (R3BTGeoPar*)rtdb->getContainer("CalifaGeoPar");
+    if (fMwpc1)
+        mwpc1Par = (R3BTGeoPar*)rtdb->getContainer("Mwpc1GeoPar");
+    if (fTwim)
+        twimPar = (R3BTGeoPar*)rtdb->getContainer("TwimGeoPar");
+    if (fMwpc2)
+        mwpc2Par = (R3BTGeoPar*)rtdb->getContainer("Mwpc2GeoPar");
+    if (fMwpc3)
+        mwpc3Par = (R3BTGeoPar*)rtdb->getContainer("Mwpc3GeoPar");
+    if (fSofTofWall)
+        tofwPar = (R3BTGeoPar*)rtdb->getContainer("TofwGeoPar");
+
     UInt_t runId = 1;
     rtdb->initContainers(runId);
 
@@ -142,17 +185,10 @@ void runsim(Int_t nEvents = 0)
     run->SetMaterials("media_r3b.geo"); // Materials
 
     // -----   Create R3B geometry --------------------------------------------
-
     // Cave definition
     FairModule* cave = new R3BCave("CAVE");
-    cave->SetGeometryFileName("r3b_cave_vacuum.geo");
+    cave->SetGeometryFileName("r3b_cave.geo");
     run->AddModule(cave);
-
-    // R3B-Music definition
-    if (fR3BMusic)
-    {
-        run->AddModule(new R3BMusic(fR3BMusicGeo, { 0., 0., -160.5 }));
-    }
 
     // MWPC0 definition
     if (fMwpc0)
@@ -169,6 +205,49 @@ void runsim(Int_t nEvents = 0)
         }
         else
             run->AddModule(new R3BSofMwpc0(fMwpc0Geo, { 0., 0., -190. }));
+        R3BSofMwpcDigitizer* mw0_digitizer = new R3BSofMwpcDigitizer("Mwpc0", 1);
+        if (fSofiaDigitizer)
+            run->AddTask(mw0_digitizer);
+    }
+
+    // R3B-Music definition
+    if (fR3BMusic)
+    {
+        run->AddModule(new R3BMusic(fR3BMusicGeo, { 0., 0., -220.5 }));
+    }
+
+    // R3B-Triple-Music definition
+    if (fR3BTripleMusic)
+    {
+        if (trimPar)
+        {
+            trimPar->printParams();
+            TGeoRotation* rtrim = new TGeoRotation("Trimrot");
+            rtrim->RotateX(trimPar->GetRotX());
+            rtrim->RotateY(trimPar->GetRotY());
+            rtrim->RotateZ(trimPar->GetRotZ());
+            run->AddModule(new R3BSofTrim(fR3BTripleMusicGeo,
+                                          { trimPar->GetPosX(), trimPar->GetPosY(), trimPar->GetPosZ(), rtrim }));
+        }
+        else
+            run->AddModule(new R3BSofTrim(fR3BTripleMusicGeo, { 0., 0., -220.5 }));
+    }
+
+    // Start scintillator
+    if (fSciStart)
+    {
+        if (scistartPar)
+        {
+            scistartPar->printParams();
+            TGeoRotation* rsci = new TGeoRotation("Scirot");
+            rsci->RotateX(scistartPar->GetRotX());
+            rsci->RotateY(scistartPar->GetRotY());
+            rsci->RotateZ(scistartPar->GetRotZ());
+            run->AddModule(new R3BSofSci(
+                fSciStartGeo, { scistartPar->GetPosX(), scistartPar->GetPosY(), scistartPar->GetPosZ(), rsci }));
+        }
+        else
+            run->AddModule(new R3BSofSci(fSciStartGeo, { 0., 0., -150. }));
     }
 
     // Tracker, vacuum chamber and LH2 target definitions
@@ -201,19 +280,45 @@ void runsim(Int_t nEvents = 0)
         {
             califaPar->printParams();
             TGeoRotation* rcalifa = new TGeoRotation("Califarot");
-            rcalifa->RotateX(mwpc0Par->GetRotX());
-            rcalifa->RotateY(mwpc0Par->GetRotY());
-            rcalifa->RotateZ(mwpc0Par->GetRotZ());
-            R3BCalifa* califa = new R3BCalifa(fCalifaGeo, { califaPar->GetPosX(), califaPar->GetPosY(), califaPar->GetPosZ(), rcalifa });
+            rcalifa->RotateX(califaPar->GetRotX());
+            rcalifa->RotateY(califaPar->GetRotY());
+            rcalifa->RotateZ(califaPar->GetRotZ());
+            R3BCalifa* califa = new R3BCalifa(
+                fCalifaGeo, { califaPar->GetPosX(), califaPar->GetPosY(), califaPar->GetPosZ(), rcalifa });
             califa->SelectGeometryVersion(fCalifaGeoVer);
             run->AddModule(califa);
         }
-        else{
-    
-        R3BCalifa* califa = new R3BCalifa(fCalifaGeo, { 0., 0., -65. });
-        califa->SelectGeometryVersion(fCalifaGeoVer);
-        run->AddModule(califa);
+        else
+        {
+
+            R3BCalifa* califa = new R3BCalifa(fCalifaGeo, { 0., 0., -65. });
+            califa->SelectGeometryVersion(fCalifaGeoVer);
+            run->AddModule(califa);
         }
+        
+        
+            // ----- Initialize CalifaDigitizer task (from Point Level to Cal Level)
+    if (fCalifaDigitizer)
+    {
+        R3BCalifaDigitizer* califaDig = new R3BCalifaDigitizer();
+        califaDig->SetNonUniformity(fCalifaNonU);
+        califaDig->SetExpEnergyRes(5.0); // 5. means 5% at 1 MeV
+        califaDig->SetComponentRes(5.0);
+        califaDig->SetDetectionThreshold(fCalifaHitEnergyTh);
+        run->AddTask(califaDig);
+        
+    // ----- Initialize Califa HitFinder task (from CrystalCal Level to Hit Level)
+    if (fCalifaHitFinder)
+    {
+        R3BCalifaCrystalCal2Hit* califaHF = new R3BCalifaCrystalCal2Hit();
+        califaHF->SetCrystalThreshold(fCalifaCryTh);
+        califaHF->SetSquareWindowAlg(0.25, 0.25); //[0.25 around 14.3 degrees, 3.2 for the complete calorimeter]
+        run->AddTask(califaHF);
+    }
+    }
+        
+        
+        
     }
 
     // MWPC1 definition
@@ -231,6 +336,9 @@ void runsim(Int_t nEvents = 0)
         }
         else
             run->AddModule(new R3BSofMwpc1(fMwpc1Geo, { 0., 0., 42. }));
+        R3BSofMwpcDigitizer* mw1_digitizer = new R3BSofMwpcDigitizer("Mwpc1", 1);
+        if (fSofiaDigitizer)
+            run->AddTask(mw1_digitizer);
     }
 
     // Twim definition
@@ -244,10 +352,13 @@ void runsim(Int_t nEvents = 0)
             rtwim->RotateY(twimPar->GetRotY());
             rtwim->RotateZ(twimPar->GetRotZ());
             run->AddModule(
-                new R3BSofTWIM(fTwimGeo, { twimPar->GetPosX(), twimPar->GetPosY(), twimPar->GetPosZ(), rtwim }));
+                new R3BSofTwim(fTwimGeo, { twimPar->GetPosX(), twimPar->GetPosY(), twimPar->GetPosZ(), rtwim }));
         }
         else
-            run->AddModule(new R3BSofTWIM(fTwimGeo, { 0., 0., 69. }));
+            run->AddModule(new R3BSofTwim(fTwimGeo, { 0., 0., 69. }));
+        R3BSofTwimDigitizer* twim_digitizer = new R3BSofTwimDigitizer("Twim", 1);
+        if (fSofiaDigitizer)
+            run->AddTask(twim_digitizer);
     }
 
     // MWPC2 definition
@@ -265,6 +376,9 @@ void runsim(Int_t nEvents = 0)
         }
         else
             run->AddModule(new R3BSofMwpc2(fMwpc2Geo, { 0., 0., 100. }));
+        R3BSofMwpcDigitizer* mw2_digitizer = new R3BSofMwpcDigitizer("Mwpc2", 1);
+        if (fSofiaDigitizer)
+            run->AddTask(mw2_digitizer);
     }
 
     // Aladin Magnet definition
@@ -298,9 +412,12 @@ void runsim(Int_t nEvents = 0)
         }
         else
         {
-            rmwpc3->RotateY(-28.);
+            rmwpc3->RotateY(-18.);
             run->AddModule(new R3BSofMwpc3(fMwpc3Geo, { -300., 0., 749., rmwpc3 }));
         }
+        R3BSofMwpcDigitizer* mw3_digitizer = new R3BSofMwpcDigitizer("Mwpc3", 1);
+        if (fSofiaDigitizer)
+            run->AddTask(mw3_digitizer);
     }
 
     // Sofia ToF-Wall definition
@@ -318,9 +435,12 @@ void runsim(Int_t nEvents = 0)
         }
         else
         {
-            rtof->RotateY(-28.);
+            rtof->RotateY(-18.);
             run->AddModule(new R3BSofTofW(fSofTofWallGeo, { -330., 0., 817., rtof }));
         }
+        R3BSofTofWDigitizer* tofw_digitizer = new R3BSofTofWDigitizer();
+        if (fSofiaDigitizer)
+            run->AddTask(tofw_digitizer);
     }
 
     // NeuLand Scintillator Detector
@@ -376,95 +496,39 @@ void runsim(Int_t nEvents = 0)
 
     if (fGenerator.CompareTo("box") == 0)
     {
-        // 2- Define the BOX generator
+        // Define the BOX generator
         Int_t pdgId = 2212;      // proton beam
-        Double32_t theta1 = 45.; // polar angle distribution
-        Double32_t theta2 = 49.;
+        Double32_t theta1 = 22.; // polar angle distribution
+        Double32_t theta2 = 90.;
         Double32_t momentum = 0.8;
         FairBoxGenerator* boxGen = new FairBoxGenerator(pdgId, 1);
         boxGen->SetThetaRange(theta1, theta2);
-        boxGen->SetPRange(momentum, momentum);
-        // boxGen->SetPhiRange(88, 88);
-        // boxGen->SetXYZ(0.0, 0.0, 4.);
+        boxGen->SetPRange(momentum, 2.0 * momentum);
         boxGen->SetPhiRange(0., 360.);
         boxGen->SetXYZ(0.0, 0.0, -65.0);
-        primGen->AddGenerator(boxGen);
-/*
-        // 128-Sn fragment
-        R3BIonGenerator* ionGen = new R3BIonGenerator(50, 129, 50, 1, 0., 0., 0.9);
-        ionGen->SetSpotRadius(0.0, -65.5, 0.0);
-        ionGen->SetBeamParameter(0.0, 0.0);
-        // primGen->AddGenerator(ionGen);
+        // primGen->AddGenerator(boxGen);
 
-        // neutrons
-        FairBoxGenerator* boxGen_n = new FairBoxGenerator(2112, 3);
-        boxGen_n->SetThetaRange(theta1, theta2);
-        boxGen_n->SetPRange(momentum, momentum * 1.2);
-        boxGen_n->SetPhiRange(0, 360);
-        boxGen_n->SetXYZ(0.0, 0.0, -1.5);
-        // primGen->AddGenerator(boxGen_n);
-        */
+        // 208-Pb fragment
+        FairIonGenerator* ionGen = new FairIonGenerator(82, 208, 82, 1, 0., 0., 1.09, 0., 0., -75.);
+        primGen->AddGenerator(ionGen);
     }
 
     if (fGenerator.CompareTo("ascii") == 0)
     {
         R3BAsciiGenerator* gen = new R3BAsciiGenerator((dir + "/sofia/input/" + fEventFile).Data());
         gen->SetXYZ(targetPar->GetPosX(), targetPar->GetPosY(), targetPar->GetPosZ());
-        gen->SetDxDyDz(0., 0., 0.0);
+        gen->SetDxDyDz(0., 0., 0.);
         primGen->AddGenerator(gen);
     }
 
-    if (fGenerator.CompareTo("r3b") == 0)
+    if (fGenerator.CompareTo("inclroot") == 0)
     {
-        Int_t pdg = 2212;
-        Float_t beamEnergy = 1.;
-        R3BSpecificGenerator* pR3bGen = new R3BSpecificGenerator(pdg, beamEnergy);
-
-        // R3bGen properties
-        pR3bGen->SetBeamInteractionFlag("off");
-        pR3bGen->SetBeamInteractionFlag("off");
-        pR3bGen->SetRndmFlag("off");
-        pR3bGen->SetRndmEneFlag("off");
-        pR3bGen->SetBoostFlag("off");
-        pR3bGen->SetReactionFlag("on");
-        pR3bGen->SetGammasFlag("off");
-        pR3bGen->SetDecaySchemeFlag("off");
-        pR3bGen->SetDissociationFlag("off");
-        pR3bGen->SetBackTrackingFlag("off");
-        pR3bGen->SetSimEmittanceFlag("off");
-
-        // R3bGen Parameters
-        pR3bGen->SetSigmaBeamEnergy(1.e-03); // Sigma(Ebeam) GeV
-        pR3bGen->SetEnergyPrim(0.3);         // Particle Energy in MeV
-        Int_t fMultiplicity = 50;
-        pR3bGen->SetNumberOfParticles(fMultiplicity); // Mult.
-
-        // Reaction type
-        //        1: "Elas"
-        //        2: "iso"
-        //        3: "Trans"
-        pR3bGen->SetReactionType("Elas");
-
-        // Target  type
-        //        1: "LeadTarget"
-        //        2: "Parafin0Deg"
-        //        3: "Parafin45Deg"
-        //        4: "LiH"
-
-        TString fTargetType = "LiH"; // Target selection: LeadTarget, Para, Para45, LiH
-
-        pR3bGen->SetTargetType(fTargetType.Data());
-        Double_t thickness = (0.11 / 2.) / 10.;         // cm
-        pR3bGen->SetTargetHalfThicknessPara(thickness); // cm
-        pR3bGen->SetTargetThicknessLiH(3.5);            // cm
-        pR3bGen->SetTargetRadius(1.);                   // cm
-
-        pR3bGen->SetSigmaXInEmittance(1.);          // cm
-        pR3bGen->SetSigmaXPrimeInEmittance(0.0001); // cm
-
-        // Dump the User settings
-        pR3bGen->PrintParameters();
-        primGen->AddGenerator(pR3bGen);
+        R3BINCLRootGenerator* gen = new R3BINCLRootGenerator((dir + "/sofia/input/" + fEventFile).Data());
+        gen->SetOnlyFission(kTRUE);
+        // gen->SetOnlyP2pFission(kTRUE);
+        gen->SetXYZ(targetPar->GetPosX(), targetPar->GetPosY(), targetPar->GetPosZ());
+        gen->SetDxDyDz(0., 0., 0.);
+        primGen->AddGenerator(gen);
     }
 
     run->SetGenerator(primGen);
@@ -474,24 +538,10 @@ void runsim(Int_t nEvents = 0)
 
     FairLogger::GetLogger()->SetLogVerbosityLevel("LOW");
 
-    // ----- Initialize CalifaDigitizer task (from Point Level to Cal Level)
-    if (fCalifa && fCalifaDigitizer)
+    if (fMwpc1&&fMwpc2&&fMwpc3&&fSofTofWall&&fSofiaDigitizer)
     {
-        R3BCalifaDigitizer* califaDig = new R3BCalifaDigitizer();
-        califaDig->SetNonUniformity(fCalifaNonU);
-        califaDig->SetExpEnergyRes(6.); // 5. means 5% at 1 MeV
-        califaDig->SetComponentRes(6.);
-        califaDig->SetDetectionThreshold(0.0); // in GeV!! 0.000010 means 10 keV
-        run->AddTask(califaDig);
-    }
-
-    // ----- Initialize Califa HitFinder task (from CrystalCal Level to Hit Level)
-    if (fCalifa && fCalifaHitFinder)
-    {
-        R3BCalifaCrystalCal2Hit* califaHF = new R3BCalifaCrystalCal2Hit();
-        califaHF->SetCrystalThreshold(0.000010);  // in GeV!! 0.000010 means 10 KeV
-        califaHF->SetSquareWindowAlg(0.25, 0.25); //[0.25 around 14.3 degrees, 3.2 for the complete calorimeter]
-        run->AddTask(califaHF);
+        R3BSofFissionAnalysis* fissiontracking = new R3BSofFissionAnalysis();
+        run->AddTask(fissiontracking);
     }
 
     // -----   Initialize simulation run   ------------------------------------
@@ -511,14 +561,15 @@ void runsim(Int_t nEvents = 0)
 
     // -----   Finish   -------------------------------------------------------
     timer.Stop();
-    Double_t rtime = timer.RealTime();
-    Double_t ctime = timer.CpuTime();
+    Double_t rtime = timer.RealTime() / 60.;
+    Double_t ctime = timer.CpuTime() / 60.;
     cout << endl << endl;
     cout << "Macro finished succesfully." << endl;
     cout << "Output file is " << OutFile << endl;
     cout << "Parameter file is " << ParFile << endl;
-    cout << "Real time " << rtime << " s, CPU time " << ctime << "s" << endl << endl;
+    cout << "Real time " << rtime << " min, CPU time " << ctime << " min" << endl << endl;
 
     cout << " Test passed" << endl;
     cout << " All ok " << endl;
+    gApplication->Terminate();
 }

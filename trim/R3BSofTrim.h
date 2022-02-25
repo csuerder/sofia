@@ -1,41 +1,40 @@
-#ifndef R3BSOFTRIM_H
-#define R3BSOFTRIM_H
+#ifndef R3BSofTrim_H
+#define R3BSofTrim_H
 
 #include "R3BDetector.h"
 #include "TLorentzVector.h"
-#include <map>
 
 class TClonesArray;
-class R3BSofTRIMPoint;
+class R3BSofTrimPoint;
 class FairVolume;
 class TGeoRotation;
+class TGeoTranslation;
+class TGeoCombiTrans;
 
-class R3BSofTRIM : public R3BDetector
+class R3BSofTrim : public R3BDetector
 {
   public:
-    /** Default constructor */
-    R3BSofTRIM();
-
+    R3BSofTrim();
     /** Standard constructor.
      *@param geoFile name of the ROOT geometry file
      *@param trans   position
      *@param rot     rotation
      */
-    R3BSofTRIM(const TString& geoFile, const TGeoTranslation& trans, const TGeoRotation& rot = TGeoRotation());
+    R3BSofTrim(const TString& geoFile, const TGeoTranslation& trans, const TGeoRotation& rot = TGeoRotation());
 
     /** Standard constructor.
      *@param geoFile name of the ROOT geometry file
      *@param combi   position + rotation
      */
-    R3BSofTRIM(const TString& geoFile, const TGeoCombiTrans& combi = TGeoCombiTrans());
+    R3BSofTrim(const TString& geoFile, const TGeoCombiTrans& combi = TGeoCombiTrans());
 
     /** Destructor **/
-    ~R3BSofTRIM();
+    ~R3BSofTrim();
 
     /** Virtual method ProcessHits
      **
      ** Defines the action to be taken when a step is inside the
-     ** active volume. Creates a R3BSofTRIMPoint and adds it
+     ** active volume. Creates a R3BSofTrimPoint and adds it
      ** to the collection.
      *@param vol  Pointer to the active volume
      **/
@@ -61,7 +60,7 @@ class R3BSofTRIM : public R3BDetector
     virtual void Register();
 
     /** Accessor to the hit collection **/
-    virtual TClonesArray* GetCollection() const;
+    virtual TClonesArray* GetCollection(Int_t iColl) const;
 
     /** Virtual method Print
      **
@@ -86,35 +85,25 @@ class R3BSofTRIM : public R3BDetector
 
     virtual Bool_t CheckIfSensitive(std::string name);
 
-    /** Public method SetNonUniformity
-     **
-     ** Defines the fNonUniformity parameter in % deviation from the central value
-     *@param nonU  Double parameter setting the maximum non-uniformity allowed
-     **/
-
     virtual void Initialize();
-    virtual void SetSpecialPhysicsCuts() {}
-
-    //  void SaveGeoParams();
 
   private:
     /** Track information to be stored until the track leaves the
         active volume. **/
-    Int_t fTrackID;                 //!  track index
-    Int_t fTrackPID;                //!  particle identification
-    Int_t fVolumeID;                //!  volume id
-    Int_t fParentTrackID;           //!  parent track index
+    Int_t fTrackID;  //!  track index
+    Int_t fTrackPID; //!  particle identification
+    Int_t fVolumeID; //!  volume id
+    Int_t fDetCopyID;
+    Double_t fZ;
+    Double_t fA;
     Int_t fUniqueID;                //!  particle unique id (e.g. if Delta electron, fUniqueID=9)
     TLorentzVector fPosIn, fPosOut; //!  position
     TLorentzVector fMomIn, fMomOut; //!  momentum
     Double32_t fTime;               //!  time
     Double32_t fLength;             //!  length
     Double32_t fELoss;              //!  energy loss
-    Double32_t fNf;                 //!  fast CsI(Tl) amplitude
-    Double32_t fNs;                 //!  slow CsI(Tl) amplitude
     Int_t fPosIndex;                //!
     Int_t fNSteps;                  //!  Number of steps in the active volume
-    Double32_t fEinc;               //!  Total incident energy
     Bool_t kGeoSaved;               //!
     TList* flGeoPar;                //!
 
@@ -124,11 +113,11 @@ class R3BSofTRIM : public R3BDetector
      **
      ** Adds a SofTRIMPoint to the HitCollection
      **/
-    R3BSofTRIMPoint* AddPoint(Int_t trackID,
+    R3BSofTrimPoint* AddPoint(Int_t trackID,
                               Int_t detID,
-                              Int_t volid,
-                              Int_t copy,
-                              Int_t ident,
+                              Int_t detCopyID,
+                              Double_t zf,
+                              Double_t af,
                               TVector3 posIn,
                               TVector3 pos_out,
                               TVector3 momIn,
@@ -143,19 +132,17 @@ class R3BSofTRIM : public R3BDetector
      **/
     void ResetParameters();
 
-    TGeoRotation* createMatrix(Double_t phi, Double_t theta, Double_t psi);
-
-    ClassDef(R3BSofTRIM, 1);
+    ClassDef(R3BSofTrim, 2);
 };
 
-inline void R3BSofTRIM::ResetParameters()
+inline void R3BSofTrim::ResetParameters()
 {
-    fTrackID = fVolumeID = fParentTrackID = fTrackPID = fUniqueID = 0;
+    fTrackID = fVolumeID = fDetCopyID = fTrackPID = fUniqueID = 0;
     fPosIn.SetXYZM(0.0, 0.0, 0.0, 0.0);
     fPosOut.SetXYZM(0.0, 0.0, 0.0, 0.0);
     fMomIn.SetXYZM(0.0, 0.0, 0.0, 0.0);
     fMomOut.SetXYZM(0.0, 0.0, 0.0, 0.0);
-    fTime = fLength = fELoss = fNf = fNs = fEinc = 0;
+    fTime = fLength = fZ = fA = fELoss = 0.;
     fPosIndex = 0;
     fNSteps = 0;
 };
