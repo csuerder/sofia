@@ -1,6 +1,6 @@
 #include "FairLogger.h"
-
 #include "FairRootManager.h"
+
 #include "R3BSofAtMappedData.h"
 #include "R3BSofAtReader.h"
 
@@ -14,22 +14,27 @@ extern "C"
 
 using namespace std;
 
-R3BSofAtReader::R3BSofAtReader(EXT_STR_h101_SOFAT* data, UInt_t offset)
+R3BSofAtReader::R3BSofAtReader(EXT_STR_h101_SOFAT* data, size_t offset)
     : R3BReader("R3BSofAtReader")
     , fData(data)
     , fOffset(offset)
     , fOnline(kFALSE)
-    , fLogger(FairLogger::GetLogger())
     , fArray(new TClonesArray("R3BSofAtMappedData"))
 {
 }
 
-R3BSofAtReader::~R3BSofAtReader() {}
+R3BSofAtReader::~R3BSofAtReader()
+{
+
+    LOG(DEBUG) << "R3BSofAtReader: Delete instance";
+    if (fArray)
+        delete fArray;
+}
 
 Bool_t R3BSofAtReader::Init(ext_data_struct_info* a_struct_info)
 {
-    int ok;
-    LOG(INFO) << "R3BSofAtReader::Init";
+    Int_t ok;
+    LOG(INFO) << "R3BSofAtReader::Init()";
     EXT_STR_h101_SOFAT_ITEMS_INFO(ok, *a_struct_info, fOffset, EXT_STR_h101_SOFAT, 0);
     if (!ok)
     {
@@ -39,14 +44,8 @@ Bool_t R3BSofAtReader::Init(ext_data_struct_info* a_struct_info)
     }
 
     // Register output array in tree
-    if (!fOnline)
-    {
-        FairRootManager::Instance()->Register("AtMappedData", "SofAt", fArray, kTRUE);
-    }
-    else
-    {
-        FairRootManager::Instance()->Register("AtMappedData", "SofAt", fArray, kFALSE);
-    }
+    FairRootManager::Instance()->Register("AtMappedData", "SofAt", fArray, !fOnline);
+    fArray->Clear();
 
     // clear struct_writer's output struct. Seems ucesb doesn't do that
     // for channels that are unknown to the current ucesb config.
@@ -66,12 +65,6 @@ Bool_t R3BSofAtReader::Read()
     return kTRUE;
 }
 
-void R3BSofAtReader::Reset()
-{
-    // Reset the output array
-    fArray->Clear();
-}
-
 Bool_t R3BSofAtReader::ReadData(EXT_STR_h101_SOFAT_onion* data)
 {
     Bool_t pileupFLAG;
@@ -81,30 +74,32 @@ Bool_t R3BSofAtReader::ReadData(EXT_STR_h101_SOFAT_onion* data)
     UShort_t nAnodesEnergy = data->SOFAT_EM;
     UShort_t nAnodesTime = data->SOFAT_TM;
     if (nAnodesEnergy != nAnodesTime)
-        LOG(ERROR) << "R3BSofAtReader::ReadData ERROR ! NOT THE SAME NUMBER OF ANODES HITTED IN ENERGY (" << nAnodesEnergy << ") AND TIME (" << nAnodesTime << ")";
+        LOG(ERROR) << "R3BSofAtReader::ReadData ERROR ! NOT THE SAME NUMBER OF ANODES HITTED IN ENERGY ("
+                   << nAnodesEnergy << ") AND TIME (" << nAnodesTime << ")";
 
     // --- energy and time are sorted
     uint32_t curAnodeTimeStart = 0;
     uint32_t curAnodeEnergyStart = 0;
-    for (UShort_t a = 0; a < nAnodesTime; a++){
-      // EMI and TMI give the 1-based anode number
-      UShort_t idAnodeTime = data->SOFAT_TMI[a];
-      UShort_t idAnodeEnergy = data->SOFAT_EMI[a];
-      if (idAnodeEnergy != idAnodeTime){
-        LOG(ERROR) << "R3BSofAtReader::ReadData ERROR ! MISMATCH FOR ANODE ID ";
-	LOG(ERROR) << "IN ENERGY #" << idAnodeEnergy << " AND TIME #" << idAnodeTime;
-      }
-      uint32_t nextAnodeTimeStart = data->SOFAT_TME[a];
-      uint32_t nextAnodeEnergyStart = data->SOFAT_EME[a];
-      if ((nextAnodeTimeStart - curAnodeTimeStart) != (nextAnodeEnergyStart - curAnodeEnergyStart))
-        LOG(ERROR) << "R3BSofAtReader::ReadData ERROR ! MISMATCH FOR MULTIPLICITY PER ANODE IN ENERGY AND TIME";
-      for (int hit = curAnodeTimeStart; hit < nextAnodeTimeStart; hit++){
-        pileupFLAG = (data->SOFAT_Ev[hit] & 0x00040000) >> 18;
-        overflowFLAG = (data->SOFAT_Ev[hit] & 0x00080000) >> 19;
-        new ((*fArray)[fArray->GetEntriesFast()]) R3BSofAtMappedData(idAnodeEnergy,
-                                                                     data->SOFAT_Ev[hit],
-                                                                     data->SOFAT_Tv[hit],
-                                                                     pileupFLAG,overflowFLAG);
+    for (UShort_t a = 0; a < nAnodesTime; a++)
+    {
+        // EMI and TMI give the 1-based anode number
+        UShort_t idAnodeTime = data->SOFAT_TMI[a];
+        UShort_t idAnodeEnergy = data->SOFAT_EMI[a];
+        if (idAnodeEnergy != idAnodeTime)
+        {
+            LOG(ERROR) << "R3BSofAtReader::ReadData ERROR ! MISMATCH FOR ANODE ID ";
+            LOG(ERROR) << "IN ENERGY #" << idAnodeEnergy << " AND TIME #" << idAnodeTime;
+        }
+        uint32_t nextAnodeTimeStart = data->SOFAT_TME[a];
+        uint32_t nextAnodeEnergyStart = data->SOFAT_EME[a];
+        if ((nextAnodeTimeStart - curAnodeTimeStart) != (nextAnodeEnergyStart - curAnodeEnergyStart))
+            LOG(ERROR) << "R3BSofAtReader::ReadData ERROR ! MISMATCH FOR MULTIPLICITY PER ANODE IN ENERGY AND TIME";
+        for (int hit = curAnodeTimeStart; hit < nextAnodeTimeStart; hit++)
+        {
+            pileupFLAG = (data->SOFAT_Ev[hit] & 0x00040000) >> 18;
+            overflowFLAG = (data->SOFAT_Ev[hit] & 0x00080000) >> 19;
+            new ((*fArray)[fArray->GetEntriesFast()])
+                R3BSofAtMappedData(idAnodeEnergy, data->SOFAT_Ev[hit], data->SOFAT_Tv[hit], pileupFLAG, overflowFLAG);
         }
         curAnodeEnergyStart = nextAnodeEnergyStart;
         curAnodeTimeStart = nextAnodeTimeStart;
@@ -113,4 +108,10 @@ Bool_t R3BSofAtReader::ReadData(EXT_STR_h101_SOFAT_onion* data)
     return kTRUE;
 }
 
-ClassImp(R3BSofAtReader)
+void R3BSofAtReader::Reset()
+{
+    // Reset the output array
+    fArray->Clear();
+}
+
+ClassImp(R3BSofAtReader);

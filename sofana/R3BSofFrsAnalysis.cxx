@@ -190,14 +190,14 @@ InitStatus R3BSofFrsAnalysis::Init()
     }
 
     // OUTPUT DATA
-    fFrsDataCA = new TClonesArray("R3BSofFrsData", 5);
+    fFrsDataCA = new TClonesArray("R3BFrsData", 5);
     if (!fOnline)
     {
-        rootManager->Register("SofFrsData", "Analysis FRS", fFrsDataCA, kTRUE);
+        rootManager->Register("FrsData", "Analysis FRS", fFrsDataCA, kTRUE);
     }
     else
     {
-        rootManager->Register("SofFrsData", "Analysis FRS", fFrsDataCA, kFALSE);
+        rootManager->Register("FrsData", "Analysis FRS", fFrsDataCA, kFALSE);
     }
     ReInit();
     SetParameter();
@@ -335,7 +335,7 @@ void R3BSofFrsAnalysis::Reset()
 }
 
 // -----   Private method AddData  --------------------------------------------
-R3BSofFrsData* R3BSofFrsAnalysis::AddData(Int_t StaId,
+R3BFrsData* R3BSofFrsAnalysis::AddData(Int_t StaId,
                                           Int_t StoId,
                                           Double_t z,
                                           Double_t aq,
@@ -344,8 +344,8 @@ R3BSofFrsData* R3BSofFrsAnalysis::AddData(Int_t StaId,
                                           Double_t xs2,
                                           Double_t xc)
 {
-    // It fills the R3BSofFrsData
+    // It fills the R3BFrsData
     TClonesArray& clref = *fFrsDataCA;
     Int_t size = clref.GetEntriesFast();
-    return new (clref[size]) R3BSofFrsData(StaId, StoId, z, aq, beta, brho, xs2, xc);
+    return new (clref[size]) R3BFrsData(StaId, StoId, z, aq, beta, brho, xs2, xc);
 }

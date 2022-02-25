@@ -12,8 +12,8 @@
 #include "R3BEventHeader.h"
 #include "R3BMusicHitData.h"
 #include "R3BMusicMappedData.h"
-#include "R3BSofMwpcCalData.h"
-#include "R3BSofMwpcHitData.h"
+#include "R3BMwpcCalData.h"
+#include "R3BMwpcHitData.h"
 #include "THttpServer.h"
 
 #include "FairLogger.h"
@@ -142,7 +142,7 @@ InitStatus R3BSofMwpcvsMusicOnlineSpectra::Init()
     cMusECorMwpc0 = new TCanvas("MusE_Mwpc0", "Music: Correlation with " + fNameDet1, 10, 10, 800, 700);
     cMusECorMwpc0->Divide(1, 2);
     fh2_MusCorMwpc0_EsumVsX0mm =
-        new TH2F("fh2_Mus_Evs" + fNameDet1 + "X", "Music: Esum vs X in mm", 500, -50, 50, 1024, 0, 8192);
+        new TH2F("fh2_Mus_Evs" + fNameDet1 + "X", "Music: Esum vs X in mm", 1000, -100, 100, 6400, 0, 64000);
     fh2_MusCorMwpc0_EsumVsX0mm->GetXaxis()->SetTitle("X [mm]");
     fh2_MusCorMwpc0_EsumVsX0mm->GetYaxis()->SetTitle("Raw Esum [channel]");
     fh2_MusCorMwpc0_EsumVsX0mm->GetXaxis()->CenterTitle(true);
@@ -154,7 +154,7 @@ InitStatus R3BSofMwpcvsMusicOnlineSpectra::Init()
     cMusECorMwpc0->cd(1);
     fh2_MusCorMwpc0_EsumVsX0mm->Draw("col");
     fh2_MusCorMwpc0_EsumVsY0mm =
-        new TH2F("fh2_Mus_Evs" + fNameDet1 + "Y", "Music: Esum vs Y in mm", 500, -50, 50, 1024, 0, 8192);
+        new TH2F("fh2_Mus_Evs" + fNameDet1 + "Y", "Music: Esum vs Y in mm", 500, -50, 50, 6400, 0, 64000);
     fh2_MusCorMwpc0_EsumVsY0mm->GetXaxis()->SetTitle("Y [mm]");
     fh2_MusCorMwpc0_EsumVsY0mm->GetYaxis()->SetTitle("Raw Esum [channel]");
     fh2_MusCorMwpc0_EsumVsY0mm->GetXaxis()->CenterTitle(true);
@@ -240,7 +240,7 @@ void R3BSofMwpcvsMusicOnlineSpectra::Exec(Option_t* option)
             {
                 for (Int_t ihit = 0; ihit < fHitItemsMwpc->GetEntriesFast(); ihit++)
                 {
-                    R3BSofMwpcHitData* hit = (R3BSofMwpcHitData*)fHitItemsMwpc->At(ihit);
+                    R3BMwpcHitData* hit = (R3BMwpcHitData*)fHitItemsMwpc->At(ihit);
                     if (!hit)
                         continue;
                     fh2_MusCorMwpc0_EsumVsX0mm->Fill(hit->GetX(), (e1 + e2) / (n1 + n2));

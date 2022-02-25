@@ -27,11 +27,11 @@
 #include "FairRuntimeDb.h"
 
 // SOFIA headers
-#include "R3BSofMwpcHitData.h"
+#include "R3BMwpcHitData.h"
 #include "R3BSofTofWHitData.h"
 #include "R3BSofTrackingData.h"
-#include "R3BSofTwimHitData.h"
-#include "R3BSofTwimHitPar.h"
+#include "R3BTwimHitData.h"
+#include "R3BTwimHitPar.h"
 #include "R3BSofFragmentAnaPar.h"
 
 class TClonesArray;
@@ -89,7 +89,7 @@ class R3BSofFragmentAnalysis : public FairTask
     Double_t frho_Cave, fBfield_Glad, fTimeOffset, fTofWPos;
     Bool_t fOnline; // Don't store data for online    
     R3BSofFragmentAnaPar* fFragPar;
-    R3BSofTwimHitPar* fTwimPar;
+    R3BTwimHitPar* fTwimPar;
     
     // Parameters from par file
     Float_t fTwimZ0 = 0., fTwimZ1 = 0., fTwimZ2 = 0.; // CalibPar for Twim
@@ -107,11 +107,11 @@ class R3BSofFragmentAnalysis : public FairTask
     TClonesArray* fTrackingDataCA; /**< Array with Tracking-output data. >*/
 
     R3BSofTofWHitData** HitTofW;
-    R3BSofTwimHitData** HitTwim;
-    R3BSofMwpcHitData** HitMwpc0;
-    R3BSofMwpcHitData** HitMwpc1;
-    R3BSofMwpcHitData** HitMwpc2;
-    R3BSofMwpcHitData** HitMwpc3;
+    R3BTwimHitData** HitTwim;
+    R3BMwpcHitData** HitMwpc0;
+    R3BMwpcHitData** HitMwpc1;
+    R3BMwpcHitData** HitMwpc2;
+    R3BMwpcHitData** HitMwpc3;
 
     /** Private method TrackingData **/
     //** Adds a TrackingData to the analysis

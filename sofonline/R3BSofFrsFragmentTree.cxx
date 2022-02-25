@@ -110,7 +110,7 @@ InitStatus R3BSofFrsFragmentTree::Init()
     // --- ------------------------------------ --- //
     // --- get access to Ana data --- //
     // --- ------------------------------------ --- //
-    fFrsData = (TClonesArray*)mgr->GetObject("SofFrsData");
+    fFrsData = (TClonesArray*)mgr->GetObject("FrsData");
     if (!fFrsData)
     {
         return kFATAL;
@@ -166,10 +166,10 @@ InitStatus R3BSofFrsFragmentTree::Init()
     if (!fTwimHitItems)
         LOG(WARNING) << "R3BSofFrsFragmentTree: TwimHitData not found";
 
-    R3BSofTwimHitPar* fCal_TwimPar = (R3BSofTwimHitPar*)rtdb->getContainer("twimHitPar");
+    R3BTwimHitPar* fCal_TwimPar = (R3BTwimHitPar*)rtdb->getContainer("twimHitPar");
     if (!fCal_TwimPar)
     {
-        LOG(ERROR) << "R3BSofTwimCal2HitPar::Init() Couldn't get handle on twimHitPar container";
+        LOG(ERROR) << "R3BTwimCal2HitPar::Init() Couldn't get handle on twimHitPar container";
     }
     //--- Parameter Container ---
     fNumSec = fCal_TwimPar->GetNumSec();        // Number of Sections
@@ -197,7 +197,7 @@ InitStatus R3BSofFrsFragmentTree::Init()
             fTwimZ2 = TwimCalZParams->GetAt(2);
         }
         else
-            LOG(INFO) << "R3BSofTwimCal2Hit parameters for charge-Z cannot be used here, number of parameters: "
+            LOG(INFO) << "R3BTwimCal2Hit parameters for charge-Z cannot be used here, number of parameters: "
                       << fNumParams;
     // Twim end
     // get access to cal data of the MWPC0
@@ -308,6 +308,7 @@ void R3BSofFrsFragmentTree::Exec(Option_t* option)
     fNEvents += 1;
     tpat = header->GetTpat();
     trigger = header->GetTrigger();
+    if (fNEvents%10000==0) Tree->AutoSave();
     if ((header->GetTpat() & 1) == 0 && header->GetTpat() != 0)
         return; // Phisics events should not be registered as tpat==0 but there are some..
 
@@ -359,7 +360,7 @@ void R3BSofFrsFragmentTree::Exec(Option_t* option)
     nHits = fFrsData->GetEntriesFast();
     for (Int_t ihit = 0; ihit < nHits; ihit++)
     {
-        R3BSofFrsData* hit = (R3BSofFrsData*)fFrsData->At(ihit);
+        R3BFrsData* hit = (R3BFrsData*)fFrsData->At(ihit);
         if (!hit)
             continue;
         // LOG(INFO) << "Sta: "<< hit->GetStaId() << " Sto: "<< hit->GetStoId() << " Z: "<<hit->GetZ()<<"
@@ -439,7 +440,7 @@ void R3BSofFrsFragmentTree::Exec(Option_t* option)
         nHits = fTwimHitItems->GetEntriesFast();
         for (Int_t ihit = 0; ihit < nHits; ihit++)
         {
-            R3BSofTwimHitData* Twimhit = (R3BSofTwimHitData*)fTwimHitItems->At(ihit);
+            R3BTwimHitData* Twimhit = (R3BTwimHitData*)fTwimHitItems->At(ihit);
             if (!Twimhit)
                 continue;
             TwimE = Twimhit->GetEave();
@@ -509,7 +510,7 @@ void R3BSofFrsFragmentTree::Exec(Option_t* option)
         nHits = fHitItemsMwpc0->GetEntriesFast();
         for (Int_t ihit = 0; ihit < nHits; ihit++)
         {
-            auto Mwpc0hit = (R3BSofMwpcHitData*)fHitItemsMwpc0->At(ihit);
+            auto Mwpc0hit = (R3BMwpcHitData*)fHitItemsMwpc0->At(ihit);
             if (!Mwpc0hit)
                 continue;
             Mw0_X = Mwpc0hit->GetX();
@@ -522,7 +523,7 @@ void R3BSofFrsFragmentTree::Exec(Option_t* option)
         nHits = fHitItemsMwpc1->GetEntriesFast();
         for (Int_t ihit = 0; ihit < nHits; ihit++)
         {
-            auto Mwpc1hit = (R3BSofMwpcHitData*)fHitItemsMwpc1->At(ihit);
+            auto Mwpc1hit = (R3BMwpcHitData*)fHitItemsMwpc1->At(ihit);
             if (!Mwpc1hit)
                 continue;
             Mw1_X = Mwpc1hit->GetX();
@@ -535,7 +536,7 @@ void R3BSofFrsFragmentTree::Exec(Option_t* option)
         nHits = fHitItemsMwpc2->GetEntriesFast();
         for (Int_t ihit = 0; ihit < nHits; ihit++)
         {
-            auto Mwpc2hit = (R3BSofMwpcHitData*)fHitItemsMwpc2->At(ihit);
+            auto Mwpc2hit = (R3BMwpcHitData*)fHitItemsMwpc2->At(ihit);
             if (!Mwpc2hit)
                 continue;
             Mw2_X = Mwpc2hit->GetX();
@@ -548,7 +549,7 @@ void R3BSofFrsFragmentTree::Exec(Option_t* option)
         nHits = fHitItemsMwpc3->GetEntriesFast();
         for (Int_t ihit = 0; ihit < nHits; ihit++)
         {
-            auto Mwpc3hit = (R3BSofMwpcHitData*)fHitItemsMwpc3->At(ihit);
+            auto Mwpc3hit = (R3BMwpcHitData*)fHitItemsMwpc3->At(ihit);
             if (!Mwpc3hit)
                 continue;
             Mw3_X = Mwpc3hit->GetX();

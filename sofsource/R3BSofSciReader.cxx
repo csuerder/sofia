@@ -1,6 +1,6 @@
 #include "FairLogger.h"
-
 #include "FairRootManager.h"
+
 #include "R3BSofSciMappedData.h"
 #include "R3BSofSciReader.h"
 
@@ -14,31 +14,24 @@ extern "C"
 
 using namespace std;
 
-R3BSofSciReader::R3BSofSciReader(EXT_STR_h101_SOFSCI* data, UInt_t offset)
-    : R3BReader("R3BSofSciReader")
-    , fData(data)
-    , fOffset(offset)
-    , fOnline(kFALSE)
-    , fArray(new TClonesArray("R3BSofSciMappedData")) // class name
-    , fNumEntries(0)
-    , fNumSci(0)
+R3BSofSciReader::R3BSofSciReader(EXT_STR_h101_SOFSCI* data, size_t offset)
+    : R3BSofSciReader(data, offset, 1)
 {
 }
 
-R3BSofSciReader::R3BSofSciReader(EXT_STR_h101_SOFSCI* data, UInt_t offset, Int_t num)
+R3BSofSciReader::R3BSofSciReader(EXT_STR_h101_SOFSCI* data, size_t offset, Int_t NumSci)
     : R3BReader("R3BSofSciReader")
     , fData(data)
     , fOffset(offset)
     , fOnline(kFALSE)
     , fArray(new TClonesArray("R3BSofSciMappedData")) // class name
-    , fNumEntries(0)
-    , fNumSci(num)
+    , fNumSci(NumSci)
 {
 }
 
 R3BSofSciReader::~R3BSofSciReader()
 {
-    LOG(INFO) << "R3BSofSciReader: Delete instance";
+    LOG(DEBUG) << "R3BSofSciReader: Delete instance";
     if (fArray)
     {
         delete fArray;
@@ -48,7 +41,7 @@ R3BSofSciReader::~R3BSofSciReader()
 Bool_t R3BSofSciReader::Init(ext_data_struct_info* a_struct_info)
 {
     Int_t ok;
-    LOG(INFO) << "R3BSofSciReader::Init";
+    LOG(INFO) << "R3BSofSciReader::Init()";
     EXT_STR_h101_SOFSCI_ITEMS_INFO(ok, *a_struct_info, fOffset, EXT_STR_h101_SOFSCI, 0);
     if (!ok)
     {
@@ -58,14 +51,7 @@ Bool_t R3BSofSciReader::Init(ext_data_struct_info* a_struct_info)
     }
 
     // Register output array in tree
-    if (!fOnline)
-    {
-        FairRootManager::Instance()->Register("SofSciMappedData", "SofSci", fArray, kTRUE);
-    }
-    else
-    {
-        FairRootManager::Instance()->Register("SofSciMappedData", "SofSci", fArray, kFALSE);
-    }
+    FairRootManager::Instance()->Register("SofSciMappedData", "SofSci", fArray, !fOnline);
     fArray->Clear();
 
     // clear struct_writer's output struct. Seems ucesb doesn't do that
@@ -103,7 +89,7 @@ Bool_t R3BSofSciReader::Read()
     */
 
     // loop over all detectors
-    for (int d = 0; d < fNumSci; d++)
+    for (Int_t d = 0; d < fNumSci; d++)
     {
         uint32_t numberOfPMTsWithHits_TF = data->SOFSCI[d].TFM;
         uint32_t numberOfPMTsWithHits_TC = data->SOFSCI[d].TCM;
@@ -128,10 +114,11 @@ Bool_t R3BSofSciReader::Read()
                 // put the mapped items {det,pmt,finetime, coarsetime} one after the other in the fArray
                 for (Int_t hit = curChannelStart; hit < nextChannelStart; hit++)
                 {
-                    auto item = new ((*fArray)[fNumEntries++]) R3BSofSciMappedData(d + 1, // 1-based numbering
-                                                                                   pmtid_TF,
-                                                                                   data->SOFSCI[d].TCv[hit],
-                                                                                   data->SOFSCI[d].TFv[hit]);
+                    auto item =
+                        new ((*fArray)[fArray->GetEntriesFast()]) R3BSofSciMappedData(d + 1, // 1-based numbering
+                                                                                      pmtid_TF,
+                                                                                      data->SOFSCI[d].TCv[hit],
+                                                                                      data->SOFSCI[d].TFv[hit]);
                 }
                 curChannelStart = nextChannelStart;
             }
@@ -144,7 +131,6 @@ void R3BSofSciReader::Reset()
 {
     // Reset the output array
     fArray->Clear();
-    fNumEntries = 0;
 }
 
-ClassImp(R3BSofSciReader)
+ClassImp(R3BSofSciReader);

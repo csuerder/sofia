@@ -20,15 +20,15 @@
 #include "R3BEventHeader.h"
 #include "R3BMusicCalData.h"
 #include "R3BMusicHitData.h"
-#include "R3BSofFrsData.h"
-#include "R3BSofMwpcCalData.h"
+#include "R3BFrsData.h"
+#include "R3BMwpcCalData.h"
 #include "R3BSofSciCalData.h"
 #include "R3BSofSciMappedData.h"
 #include "R3BSofSciSingleTcalData.h"
 #include "R3BSofSciTcalData.h"
-#include "R3BSofTwimCalData.h"
-#include "R3BSofTwimHitData.h"
-#include "R3BSofTwimHitPar.h"
+#include "R3BTwimCalData.h"
+#include "R3BTwimHitData.h"
+#include "R3BTwimHitPar.h"
 
 class TClonesArray;
 class R3BEventHeader;

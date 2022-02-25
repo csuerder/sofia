@@ -16,24 +16,31 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
-#include <bitset>
 #include <sstream>
 
 class TClonesArray;
 class R3BEventHeader;
 class R3BSofAtOnlineSpectra;
-class R3BSofMwpcOnlineSpectra;
-class R3BSofMwpcCorrelationOnlineSpectra;
+class R3BMwpcOnlineSpectra;
+class R3BMwpcCorrelationOnlineSpectra;
 class R3BSofTrimOnlineSpectra;
-class R3BSofTwimOnlineSpectra;
+class R3BTwimOnlineSpectra;
+class R3BSofTwimvsMusicOnlineSpectra;
+class R3BSofTwimvsTrimOnlineSpectra;
 class R3BSofSciOnlineSpectra;
+class R3BSofSciVsMusicOnlineSpectra;
+class R3BSofSciVsTrimOnlineSpectra;
+class R3BSofSciVsMwpc0OnlineSpectra;
 class R3BSofTofWOnlineSpectra;
+class R3BSofTrimVsTofwOnlineSpectra;
 class R3BSofScalersOnlineSpectra;
 class R3BMusicOnlineSpectra;
 class R3BAmsOnlineSpectra;
 class R3BCalifaOnlineSpectra;
 class R3BSofFrsOnlineSpectra;
 class R3BSofTrackingOnlineSpectra;
+class R3BSofTrackingFissionOnlineSpectra;
+class R3BSofCorrOnlineSpectra;
 
 /**
  * This taks reads General SOFIA data and plots online histograms
@@ -109,30 +116,38 @@ class R3BSofOnlineSpectra : public FairTask
     Int_t fNEvents;               /**< Event counter.     */
 
     R3BSofAtOnlineSpectra* fAtOnline;
-    R3BSofMwpcOnlineSpectra* fMwpc0Online;
-    R3BSofMwpcCorrelationOnlineSpectra* fMwpc01Online;
-    R3BSofMwpcCorrelationOnlineSpectra* fMwpc02Online;
-    R3BSofMwpcCorrelationOnlineSpectra* fMwpc12Online;
-    R3BSofMwpcCorrelationOnlineSpectra* fMwpc23Online;
-    R3BSofMwpcOnlineSpectra* fMwpc1Online;
-    R3BSofMwpcOnlineSpectra* fMwpc2Online;
-    R3BSofMwpcOnlineSpectra* fMwpc3Online;
+    R3BMwpcOnlineSpectra* fMwpc0Online;
+    R3BMwpcCorrelationOnlineSpectra* fMwpc01Online;
+    R3BMwpcCorrelationOnlineSpectra* fMwpc02Online;
+    R3BMwpcCorrelationOnlineSpectra* fMwpc12Online;
+    R3BMwpcCorrelationOnlineSpectra* fMwpc23Online;
+    R3BMwpcOnlineSpectra* fMwpc1Online;
+    R3BMwpcOnlineSpectra* fMwpc2Online;
+    R3BMwpcOnlineSpectra* fMwpc3Online;
     R3BSofTrimOnlineSpectra* fTrimOnline;
-    R3BSofTwimOnlineSpectra* fTwimOnline;
+    R3BTwimOnlineSpectra* fTwimOnline;
+    R3BSofTwimvsMusicOnlineSpectra* fTwimVsMusicOnline;
+    R3BSofTwimvsTrimOnlineSpectra* fTwimVsTrimOnline;
     R3BSofSciOnlineSpectra* fSciOnline;
+    R3BSofSciVsMusicOnlineSpectra* fSciVsMusOnline;
+    R3BSofSciVsTrimOnlineSpectra* fSciVsTrimOnline;
+    R3BSofSciVsMwpc0OnlineSpectra* fSciVsMw0Online;
     R3BSofTofWOnlineSpectra* fTofWOnline;
+    R3BSofTrimVsTofwOnlineSpectra* fTrimVsTofwOnline;
     R3BSofScalersOnlineSpectra* fScalersOnline;
     R3BMusicOnlineSpectra* fMusicOnline;
     R3BAmsOnlineSpectra* fAmsOnline;
     R3BCalifaOnlineSpectra* fCalifaOnline;
     R3BSofFrsOnlineSpectra* fFrsOnline;
     R3BSofTrackingOnlineSpectra* fTrackOnline;
+    R3BSofTrackingFissionOnlineSpectra* fTrackFFOnline;
+    R3BSofCorrOnlineSpectra* fCorrOnline;
 
     // Canvas
     TCanvas *cTrigger, *cWr, *cWrs;
 
     // Unpack
-    TH1F *fh1_trigger, *fh1_wr;
+    TH1F *fh1_trigger, *fh1_wr[2];
     TH1F* fh1_wrs[5];
 
   public:

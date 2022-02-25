@@ -84,7 +84,7 @@ InitStatus R3BSofFrsFillTree::Init()
     // --- ------------------------------------ --- //
     // --- get access to mapped data of the SCI --- //
     // --- ------------------------------------ --- //
-    fFrsData = (TClonesArray*)mgr->GetObject("SofFrsData");
+    fFrsData = (TClonesArray*)mgr->GetObject("FrsData");
     if (!fFrsData)
     {
         return kFATAL;
@@ -133,10 +133,10 @@ InitStatus R3BSofFrsFillTree::Init()
     if (!fTwimHitItems)
         LOG(WARNING) << "R3BSofFrsFillTree: TwimHitData not found";
 
-    R3BSofTwimHitPar* fCal_TwimPar = (R3BSofTwimHitPar*)rtdb->getContainer("twimHitPar");
+    R3BTwimHitPar* fCal_TwimPar = (R3BTwimHitPar*)rtdb->getContainer("twimHitPar");
     if (!fCal_TwimPar)
     {
-        LOG(ERROR) << "R3BSofTwimCal2HitPar::Init() Couldn't get handle on twimHitPar container";
+        LOG(ERROR) << "R3BTwimCal2HitPar::Init() Couldn't get handle on twimHitPar container";
     }
     //--- Parameter Container ---
     fNumSec = fCal_TwimPar->GetNumSec();        // Number of Sections
@@ -164,7 +164,7 @@ InitStatus R3BSofFrsFillTree::Init()
             fTwimZ2 = TwimCalZParams->GetAt(2);
         }
         else
-            LOG(INFO) << "R3BSofTwimCal2Hit parameters for charge-Z cannot be used here, number of parameters: "
+            LOG(INFO) << "R3BTwimCal2Hit parameters for charge-Z cannot be used here, number of parameters: "
                       << fNumParams;
     // Twim end
 
@@ -317,7 +317,7 @@ void R3BSofFrsFillTree::Exec(Option_t* option)
     nHits = fFrsData->GetEntriesFast();
     for (Int_t ihit = 0; ihit < nHits; ihit++)
     {
-        R3BSofFrsData* hit = (R3BSofFrsData*)fFrsData->At(ihit);
+        R3BFrsData* hit = (R3BFrsData*)fFrsData->At(ihit);
         if (!hit)
             continue;
         // LOG(INFO) << "Sta: "<< hit->GetStaId() << " Sto: "<< hit->GetStoId() << " Z: "<<hit->GetZ()<<"
@@ -387,7 +387,7 @@ void R3BSofFrsFillTree::Exec(Option_t* option)
         nHits = fTwimHitItems->GetEntriesFast();
         for (Int_t ihit = 0; ihit < nHits; ihit++)
         {
-            R3BSofTwimHitData* Twimhit = (R3BSofTwimHitData*)fTwimHitItems->At(ihit);
+            R3BTwimHitData* Twimhit = (R3BTwimHitData*)fTwimHitItems->At(ihit);
             if (!Twimhit)
                 continue;
             TwimE = Twimhit->GetEave();

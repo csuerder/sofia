@@ -105,10 +105,10 @@ void R3BSofFragmentAnalysis::SetParContainers()
     // fFragPar->printParams();
     //
     // Getting Twim Parameters
-    fTwimPar = (R3BSofTwimHitPar*)rtdb->getContainer("twimHitPar");
+    fTwimPar = (R3BTwimHitPar*)rtdb->getContainer("twimHitPar");
     if (!fTwimPar)
     {
-        LOG(ERROR) << "R3BSofTwimCal2HitPar::Init() Couldn't get handle on twimHitPar container";
+        LOG(ERROR) << "R3BTwimCal2HitPar::Init() Couldn't get handle on twimHitPar container";
     }
     //--- Parameter Container ---
     Int_t fNumSec = fTwimPar->GetNumSec();        // Number of Sections
@@ -136,7 +136,7 @@ void R3BSofFragmentAnalysis::SetParContainers()
             fTwimZ2 = TwimCalZParams->GetAt(2);
         }
         else
-            LOG(INFO) << "R3BSofTwimCal2Hit parameters for charge-Z cannot be used here, number of parameters: "
+            LOG(INFO) << "R3BTwimCal2Hit parameters for charge-Z cannot be used here, number of parameters: "
                       << fNumParams;
 }
 
@@ -238,11 +238,11 @@ void R3BSofFragmentAnalysis::Exec(Option_t* option)
     Int_t nHitTofW = fTofWHitDataCA->GetEntries();
     Int_t nHitTwim = fTwimHitDataCA->GetEntries();
     HitTofW = new R3BSofTofWHitData*[nHitTofW];
-    HitTwim = new R3BSofTwimHitData*[nHitTwim];
-    HitMwpc0 = new R3BSofMwpcHitData*[nHitMwpc0];
-    HitMwpc1 = new R3BSofMwpcHitData*[nHitMwpc1];
-    HitMwpc2 = new R3BSofMwpcHitData*[nHitMwpc2];
-    HitMwpc3 = new R3BSofMwpcHitData*[nHitMwpc3];
+    HitTwim = new R3BTwimHitData*[nHitTwim];
+    HitMwpc0 = new R3BMwpcHitData*[nHitMwpc0];
+    HitMwpc1 = new R3BMwpcHitData*[nHitMwpc1];
+    HitMwpc2 = new R3BMwpcHitData*[nHitMwpc2];
+    HitMwpc3 = new R3BMwpcHitData*[nHitMwpc3];
 
     if ( nHitMwpc1 < 1 || nHitMwpc2 < 1 || nHitMwpc3 < 1 || nHitTofW < 1 || nHitTwim < 1)
         return;
@@ -250,13 +250,13 @@ void R3BSofFragmentAnalysis::Exec(Option_t* option)
 
     for (Int_t i = 0; i < nHitMwpc1; i++)
     {
-        HitMwpc1[i] = (R3BSofMwpcHitData*)(fMwpc1HitDataCA->At(i));
+        HitMwpc1[i] = (R3BMwpcHitData*)(fMwpc1HitDataCA->At(i));
         mw[1][0] = HitMwpc1[i]->GetX();
         mw[1][1] = HitMwpc1[i]->GetY();
     }
     for (Int_t i = 0; i < nHitMwpc2; i++)
     {
-        HitMwpc2[i] = (R3BSofMwpcHitData*)(fMwpc2HitDataCA->At(i));
+        HitMwpc2[i] = (R3BMwpcHitData*)(fMwpc2HitDataCA->At(i));
         mw[2][0] = HitMwpc2[i]->GetX();
         mw[2][1] = HitMwpc2[i]->GetY();
     }
@@ -266,7 +266,7 @@ void R3BSofFragmentAnalysis::Exec(Option_t* option)
     //
     for (Int_t i = 0; i < nHitMwpc3; i++)
     {
-        HitMwpc3[i] = (R3BSofMwpcHitData*)(fMwpc3HitDataCA->At(i));
+        HitMwpc3[i] = (R3BMwpcHitData*)(fMwpc3HitDataCA->At(i));
         mw[3][0] = HitMwpc3[i]->GetX();
         mw[3][1] = HitMwpc3[i]->GetY();
     }
@@ -293,12 +293,10 @@ void R3BSofFragmentAnalysis::Exec(Option_t* option)
     Double_t countz = 0;
     for (Int_t i = 0; i < nHitTwim; i++)
     {
-        HitTwim[i] = (R3BSofTwimHitData*)(fTwimHitDataCA->At(i));
-        if (HitTwim[i]->GetZcharge() > 1)
+        HitTwim[i] = (R3BTwimHitData*)(fTwimHitDataCA->At(i));
+        if (HitTwim[i]->GetEave() > 1)
         {
-            // fZ = fZ + HitTwim[i]->GetZcharge();
 	    fE = HitTwim[i]->GetEave();
-	    //fE = fE + HitTwim[i]->GetEave();
 	    TwimTheta = HitTwim[i]->GetTheta();
             countz++;
         }
@@ -324,7 +322,7 @@ void R3BSofFragmentAnalysis::Exec(Option_t* option)
     Brho_Cave = fFragPar->GetBrhoParameter(0) + fFragPar->GetBrhoParameter(1) * x_in
       + fFragPar->GetBrhoParameter(2) * theta_in + fFragPar->GetBrhoParameter(3) * x_out;
     fAq = Brho_Cave / (3.10716 * Beta * gamma); //  m_u * c_0 / e = 3.107
-    
+
     // Fill the data
     if (fZ > 1 && fAq > 1. && Brho_Cave > 0. && Beta > 0.)
         AddData(fZ + fOffsetZ, fAq + fOffsetAq, Beta, Length, Brho_Cave, Paddle);
