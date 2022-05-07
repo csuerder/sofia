@@ -20,6 +20,7 @@
 #include "FairRuntimeDb.h"
 
 // R3B headers
+#include "R3BLogger.h"
 #include "R3BMusicHitPar.h"
 #include "R3BMusicHitData.h"
 
@@ -90,6 +91,7 @@ class R3BSofFrsAnalysis : public FairTask
 
     // Parameters set at the construction
     R3BSofFrsAnaPar* fFrs_Par; // Parameter container
+    R3BMusicHitPar* fCal_Par; /// Parameter container
     Bool_t fOnline; // Don't store data for online    UChar_t fNbSci;
     UChar_t fNbTof;
     UChar_t fNbSci;

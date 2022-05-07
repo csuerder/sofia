@@ -308,7 +308,8 @@ void R3BSofFrsFragmentTree::Exec(Option_t* option)
     fNEvents += 1;
     tpat = header->GetTpat();
     trigger = header->GetTrigger();
-    if (fNEvents%10000==0) Tree->AutoSave();
+    if (fNEvents % 10000 == 0)
+        Tree->AutoSave();
     if ((header->GetTpat() & 1) == 0 && header->GetTpat() != 0)
         return; // Phisics events should not be registered as tpat==0 but there are some..
 

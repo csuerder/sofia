@@ -27,6 +27,7 @@
 #include "FairRuntimeDb.h"
 
 // SOFIA headers
+#include "R3BLogger.h"
 #include "R3BMwpcHitData.h"
 #include "R3BSofTofWHitData.h"
 #include "R3BSofTrackingData.h"
