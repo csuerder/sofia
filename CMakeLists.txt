@@ -24,5 +24,5 @@ add_subdirectory (sofonline)
 add_subdirectory (sofana)
 #add_subdirectory (softracking)
 add_subdirectory (macros)
-add_subdirectory (califa)
+#add_subdirectory (califa)
 
