@@ -9,6 +9,7 @@
 
 #include "FairTask.h"
 #include "TCanvas.h"
+#include "TCutG.h"
 #include "TH1.h"
 #include "TH2F.h"
 #include "TMath.h"
@@ -81,23 +82,29 @@ class R3BSofAtOnlineSpectra : public FairTask
      */
     virtual void Reset_Histo();
 
+    void SetSelection(Int_t section, TCutG* c) { fcutg[section - 1] = c; }
+
     void SetNumAnodes(Int_t num) { fNumAnodes = num; }
 
   private:
     Int_t fNumAnodes;
 
     TClonesArray* fMappedItemsAt; /**< Array with mapped items. */
+    TClonesArray* fHitItemsTwim;  /**< Array with hit items. */
 
     // check for trigger should be done globablly (somewhere else)
     R3BEventHeader* header; /**< Event header.      */
     Int_t fNEvents;         /**< Event counter.     */
     Int_t fReset;
+    TCutG* fcutg[6];
 
     // Canvas
     TCanvas* cAtMap_mult;
     TCanvas* cAtMap_E;
     TCanvas* cAtMap_EvsE;
     TCanvas* cAtMap_EvsE_mult1_nopu;
+    TCanvas** cTwimZs;
+    TCanvas* cTwimZsum;
 
     // Histograms for Mapped data
     TH1F* fh1_atmap_mult;
@@ -108,6 +115,10 @@ class R3BSofAtOnlineSpectra : public FairTask
     TH1F** fh1_atmap_E_mult1_wo_pu_ov;
     TH2F** fh2_atmap_EvsE;
     TH2F** fh2_atmap_EvsE_mult1_nopu;
+    TH1F** fh1_Twimhit_Zl;
+    TH1F** fh1_Twimhit_Zr;
+    TH2F** fh2_Twimhit_ZrZl;
+    TH1F* fh1_twim_ZSum[3];
 
   public:
     ClassDef(R3BSofAtOnlineSpectra, 0)

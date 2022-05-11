@@ -13,7 +13,8 @@
 #include "R3BCalifaHitData.h"
 #include "R3BEventHeader.h"
 #include "R3BMusicHitData.h"
-#include "R3BSofTwimHitData.h"
+#include "R3BSofTrimHitData.h"
+#include "R3BTwimHitData.h"
 #include "THttpServer.h"
 
 #include "FairLogger.h"
@@ -42,8 +43,10 @@ using namespace std;
 
 R3BAmsCorrelationOnlineSpectra::R3BAmsCorrelationOnlineSpectra()
     : FairTask("AmsCorrelationOnlineSpectra", 1)
+    , fEventHeader(nullptr)
     , fHitItemsAms(NULL)
     , fHitItemsMus(NULL)
+    , fHitItemsTrim(NULL)
     , fHitItemsTwim(NULL)
     , fHitItemsCalifa(NULL)
     , fZproj(20.)
@@ -58,8 +61,10 @@ R3BAmsCorrelationOnlineSpectra::R3BAmsCorrelationOnlineSpectra()
 
 R3BAmsCorrelationOnlineSpectra::R3BAmsCorrelationOnlineSpectra(const TString& name, Int_t iVerbose)
     : FairTask(name, iVerbose)
+    , fEventHeader(nullptr)
     , fHitItemsAms(NULL)
     , fHitItemsMus(NULL)
+    , fHitItemsTrim(NULL)
     , fHitItemsTwim(NULL)
     , fHitItemsCalifa(NULL)
     , fZproj(20.)
@@ -79,6 +84,8 @@ R3BAmsCorrelationOnlineSpectra::~R3BAmsCorrelationOnlineSpectra()
         delete fHitItemsAms;
     if (fHitItemsMus)
         delete fHitItemsMus;
+    if (fHitItemsTrim)
+        delete fHitItemsTrim;
     if (fHitItemsTwim)
         delete fHitItemsTwim;
     if (fHitItemsCalifa)
@@ -96,6 +103,9 @@ InitStatus R3BAmsCorrelationOnlineSpectra::Init()
     FairRunOnline* run = FairRunOnline::Instance();
     run->GetHttpServer()->Register("", this);
 
+    // get access to tpat data
+    fEventHeader = (R3BEventHeader*)mgr->GetObject("R3BEventHeader");
+
     // get access to Hit data
     fHitItemsAms = (TClonesArray*)mgr->GetObject("AmsHitData");
     if (!fHitItemsAms)
@@ -112,7 +122,15 @@ InitStatus R3BAmsCorrelationOnlineSpectra::Init()
     // get access to hit data of the MUSIC
     fHitItemsMus = (TClonesArray*)mgr->GetObject("MusicHitData");
     if (!fHitItemsMus)
-        LOG(ERROR) << "R3BAmsCorrelationOnlineSpectra: MusicHitData not found";
+        LOG(WARNING) << "R3BAmsCorrelationOnlineSpectra: MusicHitData not found";
+
+    // get access to hit data of the Triple-MUSIC
+    fHitItemsTrim = (TClonesArray*)mgr->GetObject("TrimHitData");
+    if (!fHitItemsTrim)
+        LOG(WARNING) << "R3BAmsCorrelationOnlineSpectra: TrimHitData not found";
+
+    if (!fHitItemsTrim && !fHitItemsMus)
+        LOG(ERROR) << "R3BAmsCorrelationOnlineSpectra: MusicHitData and/or TrimHitData not found";
 
     // get access to Hit data
     fHitItemsCalifa = (TClonesArray*)mgr->GetObject("CalifaHitData");
@@ -161,7 +179,7 @@ InitStatus R3BAmsCorrelationOnlineSpectra::Init()
     { // one histo per detector
         sprintf(Name1, "fh_Ams_hit_Mul_%d", i + 1);
         sprintf(Name2, "Multiplicity Det %d", i + 1);
-        fh_Ams_hit_Mul[i] = new TH1F(Name1, Name2, 10, -0.5, 9.5);
+        fh_Ams_hit_Mul[i] = new TH1F(Name1, Name2, 30, -0.5, 29.5);
         fh_Ams_hit_Mul[i]->GetXaxis()->SetTitle("Multiplicity");
         fh_Ams_hit_Mul[i]->GetYaxis()->SetTitle("Counts");
         fh_Ams_hit_Mul[i]->GetXaxis()->CenterTitle(true);
@@ -408,10 +426,10 @@ InitStatus R3BAmsCorrelationOnlineSpectra::Init()
     fh1_openangle->Draw("");
 
     // MAIN FOLDER-AMS-CALIFA-MUSICs
-    TFolder* mainfol = new TFolder("CALIFA-MUSICs", "AMS-CALIFA-MUSICs correlation info");
+    TFolder* mainfol = new TFolder("CALIFA-AMS", "AMS-CALIFA-MUSICs correlation info");
 
     // Folder for hit data
-    if (fHitItemsMus && fHitItemsTwim)
+    if (1) //((fHitItemsMus||fHitItemsTrim) && fHitItemsTwim)
     {
         TFolder* hitfol = new TFolder("Hit", "Hit AMS-CALIFA-MUSICs correlation info");
         for (Int_t i = 0; i < fNbDet; i++)
@@ -493,6 +511,29 @@ void R3BAmsCorrelationOnlineSpectra::Exec(Option_t* option)
     if (NULL == mgr)
         LOG(FATAL) << "R3BAmsCorrelationOnlineSpectra::Exec FairRootManager not found";
 
+    // Fill histogram with trigger information
+
+    Int_t tpatbin;
+    Int_t tpat = 0;
+    if (fEventHeader->GetTpat() > 0)
+    {
+        for (Int_t i = 0; i < 16; i++)
+        {
+            tpatbin = (fEventHeader->GetTpat() & (1 << i));
+            if (tpatbin != 0)
+                tpat = i + 1;
+            //      fh1_trigger->Fill(i + 1);
+        }
+    }
+    else if (fEventHeader->GetTpat() == 0)
+    {
+        // fh1_trigger->Fill(0);
+    }
+    else
+    {
+        LOG(INFO) << fNEvents << " " << fEventHeader->GetTpat();
+    }
+
     // Fill Califa-hit data
     /*   if (fHitItemsCalifa && fHitItemsCalifa->GetEntriesFast() > 0)
        {
@@ -514,12 +555,25 @@ void R3BAmsCorrelationOnlineSpectra::Exec(Option_t* option)
     Double_t z_music = 0., z_twim = 0.;
 
     // Fill music-hit data
-    if (fHitItemsMus && fHitItemsMus->GetEntriesFast() > 0)
+    if (fHitItemsMus && !fHitItemsTrim && fHitItemsMus->GetEntriesFast() > 0)
     {
         Int_t nHits = fHitItemsMus->GetEntriesFast();
         for (Int_t ihit = 0; ihit < nHits; ihit++)
         {
             R3BMusicHitData* hit = (R3BMusicHitData*)fHitItemsMus->At(ihit);
+            if (!hit)
+                continue;
+            z_music = hit->GetZcharge();
+        }
+    }
+
+    // Fill triple music-hit data
+    if (!fHitItemsMus && fHitItemsTrim && fHitItemsTrim->GetEntriesFast() > 0)
+    {
+        Int_t nHits = fHitItemsTrim->GetEntriesFast();
+        for (Int_t ihit = 0; ihit < nHits; ihit++)
+        {
+            R3BSofTrimHitData* hit = (R3BSofTrimHitData*)fHitItemsTrim->At(ihit);
             if (!hit)
                 continue;
             z_music = hit->GetZcharge();
@@ -532,15 +586,19 @@ void R3BAmsCorrelationOnlineSpectra::Exec(Option_t* option)
         Int_t nHits = fHitItemsTwim->GetEntriesFast();
         for (Int_t ihit = 0; ihit < nHits; ihit++)
         {
-            R3BSofTwimHitData* hit = (R3BSofTwimHitData*)fHitItemsTwim->At(ihit);
+            R3BTwimHitData* hit = (R3BTwimHitData*)fHitItemsTwim->At(ihit);
             if (!hit)
                 continue;
-            z_twim = hit->GetZcharge();
+            z_twim += hit->GetZcharge();
         }
     }
 
     // Conditions to fill AMS histograms
-    if ((fZproj + 0.5) > z_music && (fZproj - 0.5) < z_music && z_twim > (fZproj - 1.5) && z_twim < (fZproj - 0.5))
+    // if ((fZproj + 0.5) > z_music && (fZproj - 0.5) < z_music && z_twim > (fZproj - 1.5) && z_twim < (fZproj - 0.5))
+
+    // if(tpat>0)std::cout<<tpat <<std::endl;
+
+    if (tpat == 4 && z_twim > 90. && z_twim < 92.)
     {
         // Fill Califa-hit data
         if (fHitItemsCalifa && fHitItemsCalifa->GetEntriesFast() > 0)
@@ -605,86 +663,89 @@ void R3BAmsCorrelationOnlineSpectra::Exec(Option_t* option)
                         fh2_Califa_coinTheta->Fill(califa_theta[i2], califa_theta[i1]);
                         fh2_Califa_coinPhi->Fill(califa_phi[i2], califa_phi[i1]);
                     }
-        }
+            //}
 
-        // Fill AMS-hit data
-        if (fHitItemsAms && fHitItemsAms->GetEntriesFast() > 0)
-        {
-            Int_t mulhit[fNbDet];
-            for (Int_t i = 0; i < fNbDet; i++)
-                mulhit[i] = 0;
-
-            Float_t Emaxhit[fNbDet]; // just look for the max. energy per detector
-            Float_t Thetamaxhit[fNbDet];
-            Float_t Phimaxhit[fNbDet];
-            for (Int_t i = 0; i < fNbDet; i++)
+            // Fill AMS-hit data
+            if (fHitItemsAms && fHitItemsAms->GetEntriesFast() > 0)
             {
-                Emaxhit[i] = 0.;
-                Thetamaxhit[i] = 0.; // at 0 degrees we have nothing!
-                Phimaxhit[i] = 90.;  // at 90 degrees we have nothing!
-            }
+                Int_t mulhit[fNbDet];
+                for (Int_t i = 0; i < fNbDet; i++)
+                    mulhit[i] = 0;
 
-            Int_t nHits = fHitItemsAms->GetEntriesFast();
-            Int_t DetId = -1;
-            // std::cout << nHits << std::endl;
-            for (Int_t ihit = 0; ihit < nHits; ihit++)
-            {
-                R3BAmsHitData* hit = (R3BAmsHitData*)fHitItemsAms->At(ihit);
-                if (!hit)
-                    continue;
-                DetId = hit->GetDetId();
-                fh_Ams_hit_Pos[DetId]->Fill(hit->GetPos_S(), hit->GetPos_K());
-                fh_Ams_hit_E[DetId]->Fill(hit->GetEnergyS(), hit->GetEnergyK());
-                fh_Ams_hit_E_theta[DetId]->Fill(hit->GetTheta() * TMath::RadToDeg(), hit->GetEnergyS());
-                mulhit[DetId]++;
-                if (DetId == 0 || DetId == 3) // inner detectors, layer 1
-                    fh2_ams_theta_phi[0]->Fill(hit->GetTheta() * TMath::RadToDeg(), hit->GetPhi() * TMath::RadToDeg());
-                else // outer detectors, layer 2
-                    fh2_ams_theta_phi[1]->Fill(hit->GetTheta() * TMath::RadToDeg(), hit->GetPhi() * TMath::RadToDeg());
-                // look for the max. energy per AMS detector
-                if (Emaxhit[DetId] < hit->GetEnergyS())
+                Float_t Emaxhit[fNbDet]; // just look for the max. energy per detector
+                Float_t Thetamaxhit[fNbDet];
+                Float_t Phimaxhit[fNbDet];
+                for (Int_t i = 0; i < fNbDet; i++)
                 {
-                    Emaxhit[DetId] = hit->GetEnergyS();
-                    Thetamaxhit[DetId] = hit->GetTheta() * TMath::RadToDeg();
-                    if (DetId > 2)
-                        Phimaxhit[DetId] = hit->GetPhi() * TMath::RadToDeg();
-                    else
+                    Emaxhit[i] = 0.;
+                    Thetamaxhit[i] = 0.; // at 0 degrees we have nothing!
+                    Phimaxhit[i] = 90.;  // at 90 degrees we have nothing!
+                }
+
+                nHits = fHitItemsAms->GetEntriesFast();
+                Int_t DetId = -1;
+                // std::cout << nHits << std::endl;
+                for (Int_t ihit = 0; ihit < nHits; ihit++)
+                {
+                    R3BAmsHitData* hit = (R3BAmsHitData*)fHitItemsAms->At(ihit);
+                    if (!hit)
+                        continue;
+                    DetId = hit->GetDetId();
+                    fh_Ams_hit_Pos[DetId]->Fill(hit->GetPos_S(), hit->GetPos_K());
+                    fh_Ams_hit_E[DetId]->Fill(hit->GetEnergyS(), hit->GetEnergyK());
+                    fh_Ams_hit_E_theta[DetId]->Fill(hit->GetTheta() * TMath::RadToDeg(), hit->GetEnergyS());
+                    mulhit[DetId]++;
+                    if (DetId == 0 || DetId == 3) // inner detectors, layer 1
+                        fh2_ams_theta_phi[0]->Fill(hit->GetTheta() * TMath::RadToDeg(),
+                                                   hit->GetPhi() * TMath::RadToDeg());
+                    else // outer detectors, layer 2
+                        fh2_ams_theta_phi[1]->Fill(hit->GetTheta() * TMath::RadToDeg(),
+                                                   hit->GetPhi() * TMath::RadToDeg());
+                    // look for the max. energy per AMS detector
+                    if (Emaxhit[DetId] < hit->GetEnergyS())
                     {
-                        if (hit->GetPhi() < 0.)
-                            Phimaxhit[DetId] = (TMath::Pi() + hit->GetPhi()) * TMath::RadToDeg() + 180.;
-                        else
+                        Emaxhit[DetId] = hit->GetEnergyS();
+                        Thetamaxhit[DetId] = hit->GetTheta() * TMath::RadToDeg();
+                        if (DetId > 2)
                             Phimaxhit[DetId] = hit->GetPhi() * TMath::RadToDeg();
+                        else
+                        {
+                            if (hit->GetPhi() < 0.)
+                                Phimaxhit[DetId] = (TMath::Pi() + hit->GetPhi()) * TMath::RadToDeg() + 180.;
+                            else
+                                Phimaxhit[DetId] = hit->GetPhi() * TMath::RadToDeg();
+                        }
                     }
                 }
-            }
-            for (Int_t i = 0; i < fNbDet; i++)
-                fh_Ams_hit_Mul[i]->Fill(mulhit[i]);
-            if (Emaxhit[0] > 0. && (Emaxhit[1] > 0. || Emaxhit[2] > 0.))
-            {
-                fh2_ams_e1_e2[0]->Fill(Emaxhit[0], TMath::Max(Emaxhit[1], Emaxhit[2]));
-                if (Emaxhit[1] > Emaxhit[2])
+                for (Int_t i = 0; i < fNbDet; i++)
+                    fh_Ams_hit_Mul[i]->Fill(mulhit[i]);
+                if (Emaxhit[0] > 0. && (Emaxhit[1] > 0. || Emaxhit[2] > 0.))
                 {
-                    fh2_ams_theta1_theta2[0]->Fill(Thetamaxhit[0], Thetamaxhit[1]);
-                    fh2_ams_phi1_phi2[0]->Fill(Phimaxhit[0], Phimaxhit[1]);
+                    fh2_ams_e1_e2[0]->Fill(Emaxhit[0], TMath::Max(Emaxhit[1], Emaxhit[2]));
+                    if (Emaxhit[1] > Emaxhit[2])
+                    {
+                        fh2_ams_theta1_theta2[0]->Fill(Thetamaxhit[0], Thetamaxhit[1]);
+                        fh2_ams_phi1_phi2[0]->Fill(Phimaxhit[0], Phimaxhit[1]);
+                    }
+                    else if (Emaxhit[2] > Emaxhit[1])
+                    {
+                        fh2_ams_theta1_theta2[0]->Fill(Thetamaxhit[0], Thetamaxhit[2]);
+                        fh2_ams_phi1_phi2[0]->Fill(Phimaxhit[0], Phimaxhit[2]);
+                    }
                 }
-                else if (Emaxhit[2] > Emaxhit[1])
+                if (Emaxhit[3] > 0. && (Emaxhit[4] > 0. || Emaxhit[5] > 0.))
                 {
-                    fh2_ams_theta1_theta2[0]->Fill(Thetamaxhit[0], Thetamaxhit[2]);
-                    fh2_ams_phi1_phi2[0]->Fill(Phimaxhit[0], Phimaxhit[2]);
-                }
-            }
-            if (Emaxhit[3] > 0. && (Emaxhit[4] > 0. || Emaxhit[5] > 0.))
-            {
-                fh2_ams_e1_e2[1]->Fill(Emaxhit[3], TMath::Max(Emaxhit[4], Emaxhit[5]));
-                if (Emaxhit[4] > Emaxhit[5])
-                {
-                    fh2_ams_theta1_theta2[1]->Fill(Thetamaxhit[3], Thetamaxhit[4]);
-                    fh2_ams_phi1_phi2[1]->Fill(Phimaxhit[3], Phimaxhit[4]);
-                }
-                else if (Emaxhit[5] > Emaxhit[4])
-                {
-                    fh2_ams_theta1_theta2[1]->Fill(Thetamaxhit[3], Thetamaxhit[5]);
-                    fh2_ams_phi1_phi2[1]->Fill(Phimaxhit[3], Phimaxhit[5]);
+                    fh2_ams_e1_e2[1]->Fill(Emaxhit[3], TMath::Max(Emaxhit[4], Emaxhit[5]));
+                    if (Emaxhit[4] > Emaxhit[5])
+                    {
+                        fh2_ams_theta1_theta2[1]->Fill(Thetamaxhit[3], Thetamaxhit[4]);
+                        fh2_ams_phi1_phi2[1]->Fill(Phimaxhit[3], Phimaxhit[4]);
+                    }
+                    else if (Emaxhit[5] > Emaxhit[4])
+                    {
+                        fh2_ams_theta1_theta2[1]->Fill(Thetamaxhit[3], Thetamaxhit[5]);
+                        fh2_ams_phi1_phi2[1]->Fill(Phimaxhit[3], Phimaxhit[5]);
+                    }
                 }
             }
         }
@@ -706,6 +767,10 @@ void R3BAmsCorrelationOnlineSpectra::FinishEvent()
     if (fHitItemsMus)
     {
         fHitItemsMus->Clear();
+    }
+    if (fHitItemsTrim)
+    {
+        fHitItemsTrim->Clear();
     }
     if (fHitItemsCalifa)
     {

@@ -56,7 +56,7 @@ R3BSofFragmentAnalysis::R3BSofFragmentAnalysis(const TString& name, Int_t iVerbo
 // Virtual R3BSofFragmentAnalysis: Destructor
 R3BSofFragmentAnalysis::~R3BSofFragmentAnalysis()
 {
-    LOG(INFO) << "R3BSofFragmentAnalysis: Delete instance";
+    R3BLOG(INFO, "R3BSofFragmentAnalysis: Delete instance");
     if (fMwpc0HitDataCA)
     {
         delete fMwpc0HitDataCA;
@@ -94,22 +94,26 @@ void R3BSofFragmentAnalysis::SetParContainers()
     FairRuntimeDb* rtdb = FairRuntimeDb::instance();
     if (!rtdb)
     {
-        LOG(ERROR) << "FairRuntimeDb not opened!";
+        R3BLOG(ERROR, "FairRuntimeDb not opened!");
     }
     //
     fFragPar = (R3BSofFragmentAnaPar*)rtdb->getContainer("soffragmentAnaPar");
     if (!fFragPar)
     {
-        LOG(ERROR) << "R3BSofFragmentAnaPar::Init() Couldn't get handle on soffragmentAnaPar container";
+        R3BLOG(ERROR, "R3BSofFragmentAnaPar::Init() Couldn't get handle on soffragmentAnaPar container");
     }
     // fFragPar->printParams();
     //
     // Getting Twim Parameters
-    fTwimPar = (R3BSofTwimHitPar*)rtdb->getContainer("twimHitPar");
+    fTwimPar = (R3BTwimHitPar*)rtdb->getContainer("twimHitPar");
     if (!fTwimPar)
     {
-        LOG(ERROR) << "R3BSofTwimCal2HitPar::Init() Couldn't get handle on twimHitPar container";
+        R3BLOG(ERROR, "Couldn't get handle on twimHitPar container");
     }
+}
+
+void R3BSofFragmentAnalysis::SetParameter()
+{
     //--- Parameter Container ---
     Int_t fNumSec = fTwimPar->GetNumSec();        // Number of Sections
     Int_t fNumAnodes = fTwimPar->GetNumAnodes();  // Number of anodes
@@ -136,25 +140,21 @@ void R3BSofFragmentAnalysis::SetParContainers()
             fTwimZ2 = TwimCalZParams->GetAt(2);
         }
         else
-            LOG(INFO) << "R3BSofTwimCal2Hit parameters for charge-Z cannot be used here, number of parameters: "
-                      << fNumParams;
-}
-
-void R3BSofFragmentAnalysis::SetParameter()
-{
+            R3BLOG(WARNING,
+                   "R3BTwimCal2Hit parameters for charge-Z cannot be used here, number of parameters: " << fNumParams);
     //--- Parameter Container ---
     // frho_Cave = 7.0;
     // fBfield_Glad = 4.0;
     // fDist_mw3_tof = 72.0;
     // fDist_start_glad = 65.5 + 163.4 + 118.;
-    // LOG(INFO) << "R3BSofFragmentAnalysis: Rho (Cave): " << frho_Cave;
-    // LOG(INFO) << "R3BSofFragmentAnalysis: B (Cave): " << fBfield_Glad;
+    // R3BLOG(INFO, "R3BSofFragmentAnalysis: Rho (Cave): " << frho_Cave);
+    // R3BLOG(INFO, "R3BSofFragmentAnalysis: B (Cave): " << fBfield_Glad);
 }
 
 // -----   Public method Init   --------------------------------------------
 InitStatus R3BSofFragmentAnalysis::Init()
 {
-    LOG(INFO) << "R3BSofFragmentAnalysis: Init tracking analysis at Cave-C";
+    R3BLOG(INFO, "R3BSofFragmentAnalysis: Init tracking analysis at Cave-C");
 
     // INPUT DATA
     FairRootManager* rootManager = FairRootManager::Instance();
@@ -238,35 +238,34 @@ void R3BSofFragmentAnalysis::Exec(Option_t* option)
     Int_t nHitTofW = fTofWHitDataCA->GetEntries();
     Int_t nHitTwim = fTwimHitDataCA->GetEntries();
     HitTofW = new R3BSofTofWHitData*[nHitTofW];
-    HitTwim = new R3BSofTwimHitData*[nHitTwim];
-    HitMwpc0 = new R3BSofMwpcHitData*[nHitMwpc0];
-    HitMwpc1 = new R3BSofMwpcHitData*[nHitMwpc1];
-    HitMwpc2 = new R3BSofMwpcHitData*[nHitMwpc2];
-    HitMwpc3 = new R3BSofMwpcHitData*[nHitMwpc3];
+    HitTwim = new R3BTwimHitData*[nHitTwim];
+    HitMwpc0 = new R3BMwpcHitData*[nHitMwpc0];
+    HitMwpc1 = new R3BMwpcHitData*[nHitMwpc1];
+    HitMwpc2 = new R3BMwpcHitData*[nHitMwpc2];
+    HitMwpc3 = new R3BMwpcHitData*[nHitMwpc3];
 
-    if ( nHitMwpc1 < 1 || nHitMwpc2 < 1 || nHitMwpc3 < 1 || nHitTofW < 1 || nHitTwim < 1)
+    if (nHitMwpc1 < 1 || nHitMwpc2 < 1 || nHitMwpc3 < 1 || nHitTofW < 1 || nHitTwim < 1)
         return;
-    // LOG(INFO) << "R3BSofFragmentAnalysis: nTwim: "<< nHitTwim << ", nTofW: " << nHitTofW << ", nMwpc: " << nHitMwpc ;
 
     for (Int_t i = 0; i < nHitMwpc1; i++)
     {
-        HitMwpc1[i] = (R3BSofMwpcHitData*)(fMwpc1HitDataCA->At(i));
+        HitMwpc1[i] = (R3BMwpcHitData*)(fMwpc1HitDataCA->At(i));
         mw[1][0] = HitMwpc1[i]->GetX();
         mw[1][1] = HitMwpc1[i]->GetY();
     }
     for (Int_t i = 0; i < nHitMwpc2; i++)
     {
-        HitMwpc2[i] = (R3BSofMwpcHitData*)(fMwpc2HitDataCA->At(i));
+        HitMwpc2[i] = (R3BMwpcHitData*)(fMwpc2HitDataCA->At(i));
         mw[2][0] = HitMwpc2[i]->GetX();
         mw[2][1] = HitMwpc2[i]->GetY();
     }
     // Calculate raw angle /mm
-    //mw[1][2] = mw[2][0] - mw[1][0];
-    //mw[1][3] = mw[2][1] - mw[1][1];
+    // mw[1][2] = mw[2][0] - mw[1][0];
+    // mw[1][3] = mw[2][1] - mw[1][1];
     //
     for (Int_t i = 0; i < nHitMwpc3; i++)
     {
-        HitMwpc3[i] = (R3BSofMwpcHitData*)(fMwpc3HitDataCA->At(i));
+        HitMwpc3[i] = (R3BMwpcHitData*)(fMwpc3HitDataCA->At(i));
         mw[3][0] = HitMwpc3[i]->GetX();
         mw[3][1] = HitMwpc3[i]->GetY();
     }
@@ -293,38 +292,31 @@ void R3BSofFragmentAnalysis::Exec(Option_t* option)
     Double_t countz = 0;
     for (Int_t i = 0; i < nHitTwim; i++)
     {
-        HitTwim[i] = (R3BSofTwimHitData*)(fTwimHitDataCA->At(i));
-        if (HitTwim[i]->GetZcharge() > 1)
+        HitTwim[i] = (R3BTwimHitData*)(fTwimHitDataCA->At(i));
+        if (HitTwim[i]->GetEave() > 1)
         {
-            // fZ = fZ + HitTwim[i]->GetZcharge();
-	    fE = HitTwim[i]->GetEave();
-	    //fE = fE + HitTwim[i]->GetEave();
-	    TwimTheta = HitTwim[i]->GetTheta();
+            fE = HitTwim[i]->GetEave();
+            TwimTheta = HitTwim[i]->GetTheta();
             countz++;
         }
     }
     if (countz > 0)
     {
-      //fE = fE / countz;
+        // fE = fE / countz;
         fZ = fTwimZ0 + fTwimZ1 * TMath::Sqrt(fE) * Beta + fTwimZ2 * fE * Beta * Beta;
     }
     //
     // Calculate brho and aoq
-    /*
-    Double_t Dispersion_MW3 = mw[3][0] -120.342308 - TwimTheta *(5685.146295) -4.625269 - (mw[1][0]+mw[2][0])/2. *(0.571696)-1.241102;
-      // - (mw[3][1]-mw[1][1]) *(-0.056444))+ (- (10.569345) - (mw[1][1]+mw[2][1])/2. *(0.764638)) // Y correction is not used.
-    Brho_Cave = (Dispersion_MW3 +1282.411556)/141.549357;
-    */
-    Double_t x_in = (mw[1][0] + mw[2][0])/2.;
+    Double_t x_in = (mw[1][0] + mw[2][0]) / 2.;
     Double_t theta_in = TwimTheta;
     Double_t x_out = mw[3][0];
-    //Double_t theta_out = 0;
-    if(fFragPar->GetNumBrhoParameters() < 4)
+    // Double_t theta_out = 0;
+    if (fFragPar->GetNumBrhoParameters() < 4)
         return;
-    Brho_Cave = fFragPar->GetBrhoParameter(0) + fFragPar->GetBrhoParameter(1) * x_in
-      + fFragPar->GetBrhoParameter(2) * theta_in + fFragPar->GetBrhoParameter(3) * x_out;
+    Brho_Cave = fFragPar->GetBrhoParameter(0) + fFragPar->GetBrhoParameter(1) * x_in +
+                fFragPar->GetBrhoParameter(2) * theta_in + fFragPar->GetBrhoParameter(3) * x_out;
     fAq = Brho_Cave / (3.10716 * Beta * gamma); //  m_u * c_0 / e = 3.107
-    
+
     // Fill the data
     if (fZ > 1 && fAq > 1. && Brho_Cave > 0. && Beta > 0.)
         AddData(fZ + fOffsetZ, fAq + fOffsetAq, Beta, Length, Brho_Cave, Paddle);
@@ -337,7 +329,7 @@ void R3BSofFragmentAnalysis::Finish() {}
 // -----   Public method Reset also called by FinishEvent()   -------------------
 void R3BSofFragmentAnalysis::Reset()
 {
-    LOG(DEBUG) << "Clearing SofTrackingData Structure";
+    R3BLOG(DEBUG, "Clearing SofTrackingData Structure");
 
     if (HitTofW)
         delete HitTofW;

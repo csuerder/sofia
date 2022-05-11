@@ -20,12 +20,13 @@
 #include "FairRuntimeDb.h"
 
 // R3B headers
+#include "R3BLogger.h"
 #include "R3BMusicHitPar.h"
 #include "R3BMusicHitData.h"
 
 // SOFIA headers
 #include "R3BSofFrsAnaPar.h"
-#include "R3BSofFrsData.h"
+#include "R3BFrsData.h"
 #include "R3BSofSciSingleTcalData.h"
 
 class TClonesArray;
@@ -90,6 +91,7 @@ class R3BSofFrsAnalysis : public FairTask
 
     // Parameters set at the construction
     R3BSofFrsAnaPar* fFrs_Par; // Parameter container
+    R3BMusicHitPar* fCal_Par; /// Parameter container
     Bool_t fOnline; // Don't store data for online    UChar_t fNbSci;
     UChar_t fNbTof;
     UChar_t fNbSci;
@@ -119,7 +121,7 @@ class R3BSofFrsAnalysis : public FairTask
     
     /** Private method FrsData **/
     //** Adds a FrsData to the analysis
-    R3BSofFrsData* AddData(Int_t StaId, Int_t StoId, Double_t z, Double_t aq, Double_t betaval, Double_t brhoval, Double_t xs2, Double_t xc);
+    R3BFrsData* AddData(Int_t StaId, Int_t StoId, Double_t z, Double_t aq, Double_t betaval, Double_t brhoval, Double_t xs2, Double_t xc);
 
   public:
     // Class definition

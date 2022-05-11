@@ -124,8 +124,8 @@ void R3BSofFragmentAnaPar::printParams()
     for (Int_t s = 0; s < fNumSci; s++)
     {
 
-        LOG(INFO) << "Sci " << s + 1 << " in use " << fIn_use->GetAt(s) << ", Position: " << fTofW_Offset->GetAt(s)
-                  << ", Tof: " << fEffective_Length->GetAt(s);
+        LOG(INFO) << "Sci " << s + 1 << " in use " << fIn_use->GetAt(s) << ", ToF offset: " << fTofW_Offset->GetAt(s)
+                  << ", Effective Length: " << fEffective_Length->GetAt(s);
     }
 
     LOG(INFO) << "R3BSofFragmentAnaPar: " << fNumBrhoParam << " parameters for Brho reconstruction in use: ";
@@ -135,5 +135,4 @@ void R3BSofFragmentAnaPar::printParams()
 
         LOG(INFO) << "Param" << s << ": " << fBrhoParameter->GetAt(s);
     }
-
 }

@@ -1,6 +1,6 @@
 #include "FairLogger.h"
-
 #include "FairRootManager.h"
+
 #include "R3BSofTrimMappedData.h"
 #include "R3BSofTrimReader.h"
 
@@ -14,34 +14,32 @@ extern "C"
 
 using namespace std;
 
-R3BSofTrimReader::R3BSofTrimReader(EXT_STR_h101_SOFTRIM* data, UInt_t offset)
-    : R3BReader("R3BSofTrimReader")
-    , fData(data)
-    , fOffset(offset)
-    , fOnline(kFALSE)
-    , fLogger(FairLogger::GetLogger())
-    , fArray(new TClonesArray("R3BSofTrimMappedData"))
-    , fSections(3)
+R3BSofTrimReader::R3BSofTrimReader(EXT_STR_h101_SOFTRIM* data, size_t offset)
+    : R3BSofTrimReader(data, offset, 3)
 {
 }
 
-R3BSofTrimReader::R3BSofTrimReader(EXT_STR_h101_SOFTRIM* data, UInt_t offset, Int_t num)
+R3BSofTrimReader::R3BSofTrimReader(EXT_STR_h101_SOFTRIM* data, size_t offset, Int_t num)
     : R3BReader("R3BSofTrimReader")
     , fData(data)
     , fOffset(offset)
     , fOnline(kFALSE)
-    , fLogger(FairLogger::GetLogger())
     , fArray(new TClonesArray("R3BSofTrimMappedData"))
     , fSections(num)
 {
 }
 
-R3BSofTrimReader::~R3BSofTrimReader() {}
+R3BSofTrimReader::~R3BSofTrimReader()
+{
+    LOG(DEBUG) << "R3BSofTrimReader: Delete instance";
+    if (fArray)
+        delete fArray;
+}
 
 Bool_t R3BSofTrimReader::Init(ext_data_struct_info* a_struct_info)
 {
-    int ok;
-    LOG(INFO) << "R3BSofTrimReader::Init";
+    Int_t ok;
+    LOG(INFO) << "R3BSofTrimReader::Init()";
     EXT_STR_h101_SOFTRIM_ITEMS_INFO(ok, *a_struct_info, fOffset, EXT_STR_h101_SOFTRIM, 0);
     if (!ok)
     {
@@ -51,14 +49,8 @@ Bool_t R3BSofTrimReader::Init(ext_data_struct_info* a_struct_info)
     }
 
     // Register output array in tree
-    if (!fOnline)
-    {
-        FairRootManager::Instance()->Register("TrimMappedData", "SofTrim", fArray, kTRUE);
-    }
-    else
-    {
-        FairRootManager::Instance()->Register("TrimMappedData", "SofTrim", fArray, kFALSE);
-    }
+    FairRootManager::Instance()->Register("TrimMappedData", "SofTrim", fArray, !fOnline);
+    fArray->Clear();
 
     // clear struct_writer's output struct. Seems ucesb doesn't do that
     // for channels that are unknown to the current ucesb config.
@@ -123,7 +115,7 @@ Bool_t R3BSofTrimReader::ReadData(EXT_STR_h101_SOFTRIM_onion* data, UShort_t sec
           // EMI gives the 1-based anode number
           LOG(INFO) << " idAnodeEnergy = " << data->SOFTRIM_S[section].EMI[a] ;
        }
-     */	
+     */
 
     // --- ----------------- --- //
     // --- TRIM MAPPED DATA --- //
@@ -182,8 +174,8 @@ Bool_t R3BSofTrimReader::ReadData(EXT_STR_h101_SOFTRIM_onion* data, UShort_t sec
 
     // --- ENERGY and TIME OF THE ANODE SIGNALS --- //
     if (nAnodesEnergy != nAnodesTime)
-        LOG(ERROR)
-            << "R3BSofTrimReader::ReadData ERROR ! NOT THE SAME NUMBER OF ANODES HITTED IN ENERGY (" << nAnodesEnergy << ") AND TIME (" << nAnodesTime << ")";
+        LOG(ERROR) << "R3BSofTrimReader::ReadData ERROR ! NOT THE SAME NUMBER OF ANODES HITTED IN ENERGY ("
+                   << nAnodesEnergy << ") AND TIME (" << nAnodesTime << ")";
 
     // ENERGY AND TIME ARE SORTED
     uint32_t curAnodeTimeStart = 0;
@@ -218,4 +210,4 @@ Bool_t R3BSofTrimReader::ReadData(EXT_STR_h101_SOFTRIM_onion* data, UShort_t sec
     return kTRUE;
 }
 
-ClassImp(R3BSofTrimReader)
+ClassImp(R3BSofTrimReader);

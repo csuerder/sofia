@@ -45,7 +45,7 @@ R3BSofFrsAnalysis::R3BSofFrsAnalysis(const TString& name, Int_t iVerbose)
 // Virtual R3BSofFrsAnalysis: Destructor
 R3BSofFrsAnalysis::~R3BSofFrsAnalysis()
 {
-    LOG(INFO) << "R3BSofFrsAnalysis: Delete instance";
+    R3BLOG(INFO, "R3BSofFrsAnalysis: Delete instance");
     // Kept Mwpc and SciHit can be used for later analysis if needed
     /*if (fMwpcHitDataCA)
     {
@@ -72,57 +72,34 @@ R3BSofFrsAnalysis::~R3BSofFrsAnalysis()
 
 void R3BSofFrsAnalysis::SetParContainers()
 {
-    LOG(INFO) << "R3BSofFrsAnalysis::SetParContainers()";
+    R3BLOG(INFO, "R3BSofFrsAnalysis::SetParContainers()");
     // Parameter Container
     // Reading soffrsAnaPar from FairRuntimeDb
     FairRuntimeDb* rtdb = FairRuntimeDb::instance();
     if (!rtdb)
     {
-        LOG(ERROR) << "FairRuntimeDb not opened!";
+        R3BLOG(ERROR, "FairRuntimeDb not opened!");
     }
 
     fFrs_Par = (R3BSofFrsAnaPar*)rtdb->getContainer("soffrsAnaPar");
     if (!fFrs_Par)
     {
-        LOG(ERROR) << "R3BSofFrsAnalysisPar:: Couldn't get handle on soffrsAnaPar container";
+        R3BLOG(ERROR, "R3BSofFrsAnalysisPar:: Couldn't get handle on soffrsAnaPar container");
     }
     else
     {
-        LOG(INFO) << "R3BSofFrsAnalysisPar:: soffrsAnaPar container open";
+        R3BLOG(INFO, "R3BSofFrsAnalysisPar:: soffrsAnaPar container open");
     }
 
-    R3BMusicHitPar* fCal_Par; /// **< Parameter container. >* //
     fCal_Par = (R3BMusicHitPar*)rtdb->getContainer("musicHitPar");
     if (!fCal_Par)
     {
-        LOG(ERROR) << "R3BSofFrsAnalysisPar::Init() Couldn't get handle on musicHitPar container";
+        R3BLOG(ERROR, "R3BSofFrsAnalysisPar::Init() Couldn't get handle on musicHitPar container");
     }
     else
     {
-        LOG(INFO) << "R3BSofFrsAnalysisPar:: musicHitPar container open";
+        R3BLOG(INFO, "R3BSofFrsAnalysisPar:: musicHitPar container open");
     }
-    //--- Parameter Container ---
-    fNumMusicParams = fCal_Par->GetNumParZFit(); // Number of Parameters
-    LOG(INFO) << "R3BSofFrsAnalysisPar:: R3BMusicCal2Hit: Nb parameters for charge-Z: " << (Int_t)fNumMusicParams;
-    CalZParams = new TArrayF();
-    CalZParams->Set(fNumMusicParams);
-    CalZParams = fCal_Par->GetZHitPar(); // Array with the Cal parameters
-    // Parameters detector
-    if (fNumMusicParams == 2)
-    {
-        fZ0 = CalZParams->GetAt(0);
-        fZ1 = CalZParams->GetAt(1);
-    }
-    else if (fNumMusicParams == 3)
-    {
-        fZ0 = CalZParams->GetAt(0);
-        fZ1 = CalZParams->GetAt(1);
-        fZ2 = CalZParams->GetAt(2);
-    }
-    else
-        LOG(INFO) << "R3BSofFrsAnalysisPar:: R3BMusicCal2Hit parameters for charge-Z cannot be used here, number of "
-                     "parameters: "
-                  << fNumMusicParams;
 }
 
 void R3BSofFrsAnalysis::SetParameter()
@@ -151,12 +128,35 @@ void R3BSofFrsAnalysis::SetParameter()
     {
         fBrhoCorrPar[i] = fFrs_Par->GetBrhoCorrPar(i);
     }
+    //--- Parameter Container ---
+    fNumMusicParams = fCal_Par->GetNumParZFit(); // Number of Parameters
+    R3BLOG(INFO, "R3BSofFrsAnalysisPar:: R3BMusicCal2Hit: Nb parameters for charge-Z: " << (Int_t)fNumMusicParams);
+    CalZParams = new TArrayF();
+    CalZParams->Set(fNumMusicParams);
+    CalZParams = fCal_Par->GetZHitPar(); // Array with the Cal parameters
+    // Parameters detector
+    if (fNumMusicParams == 2)
+    {
+        fZ0 = CalZParams->GetAt(0);
+        fZ1 = CalZParams->GetAt(1);
+    }
+    else if (fNumMusicParams == 3)
+    {
+        fZ0 = CalZParams->GetAt(0);
+        fZ1 = CalZParams->GetAt(1);
+        fZ2 = CalZParams->GetAt(2);
+    }
+    else
+        R3BLOG(INFO,
+               "R3BSofFrsAnalysisPar:: R3BMusicCal2Hit parameters for charge-Z cannot be used here, number of "
+               "parameters: "
+                   << fNumMusicParams);
 }
 
 // -----   Public method Init   --------------------------------------------
 InitStatus R3BSofFrsAnalysis::Init()
 {
-    LOG(INFO) << "R3BSofFrsAnalysis: Init FRS analysis from S2 to Cave-C";
+    R3BLOG(INFO, "R3BSofFrsAnalysis: Init FRS analysis from S2 to Cave-C");
 
     // INPUT DATA
     FairRootManager* rootManager = FairRootManager::Instance();
@@ -190,21 +190,21 @@ InitStatus R3BSofFrsAnalysis::Init()
     }
 
     // OUTPUT DATA
-    fFrsDataCA = new TClonesArray("R3BSofFrsData", 5);
+    fFrsDataCA = new TClonesArray("R3BFrsData", 5);
     if (!fOnline)
     {
-        rootManager->Register("SofFrsData", "Analysis FRS", fFrsDataCA, kTRUE);
+        rootManager->Register("FrsData", "Analysis FRS", fFrsDataCA, kTRUE);
     }
     else
     {
-        rootManager->Register("SofFrsData", "Analysis FRS", fFrsDataCA, kFALSE);
+        rootManager->Register("FrsData", "Analysis FRS", fFrsDataCA, kFALSE);
     }
     ReInit();
     SetParameter();
 
     xpos = new Double_t[fNbSci];
 
-    LOG(INFO) << "R3BSofFrsAnalysis::Init() done";
+    R3BLOG(INFO, "R3BSofFrsAnalysis::Init() done");
     return kSUCCESS;
 }
 
@@ -287,22 +287,23 @@ void R3BSofFrsAnalysis::Exec(Option_t* option)
             continue;
         Double_t beta = fPathLength[i] / (tof + fTofOffset[i]); // ToFCalib
         Double_t gamma = 1. / (TMath::Sqrt(1. - beta * beta));
-	Double_t correction = 1.;
-	if(fUseS2x[i] != 0 && fNumBrhoCorrPar > 0)
-	  {
-	    for(Int_t j = 0; j < fNumBrhoCorrPar; j++)
-	      correction -= pow(xpos[fIdS2 - 1], j) * fBrhoCorrPar[j];
-	  }
-	Double_t brho = fBrho0 * correction;// * (1 + (fUseS2x[i] != 0 ? xpos[fIdS2 - 1] : 0.) / 726.);
-	Double_t aoq = brho / (3.10716 * gamma * beta);
-	//LOG(INFO) << correction << " " << brho << " "<< fBrho0;
+        Double_t correction = 1.;
+        if (fUseS2x[i] != 0 && fNumBrhoCorrPar > 0)
+        {
+            for (Int_t j = 0; j < fNumBrhoCorrPar; j++)
+                correction -= pow(xpos[fIdS2 - 1], j) * fBrhoCorrPar[j];
+        }
+        Double_t brho = fBrho0 * correction; // * (1 + (fUseS2x[i] != 0 ? xpos[fIdS2 - 1] : 0.) / 726.);
+        Double_t aoq = brho / (3.10716 * gamma * beta);
+        // R3BLOG(INFO, correction << " " << brho << " "<< fBrho0);
         if (beta > 0.)
         {
             MusicZ = fZ0 + fZ1 * TMath::Sqrt(MusicE) * beta + fZ2 * MusicE * beta * beta;
-        }else
-	{
-	    MusicZ = NAN;
-	}
+        }
+        else
+        {
+            MusicZ = NAN;
+        }
         AddData(fStaId[i], fStoId[i], MusicZ, aoq, beta, brho, xpos[fIdS2 - 1], xpos[fIdCave - 1]);
     }
     return;
@@ -335,17 +336,17 @@ void R3BSofFrsAnalysis::Reset()
 }
 
 // -----   Private method AddData  --------------------------------------------
-R3BSofFrsData* R3BSofFrsAnalysis::AddData(Int_t StaId,
-                                          Int_t StoId,
-                                          Double_t z,
-                                          Double_t aq,
-                                          Double_t beta,
-                                          Double_t brho,
-                                          Double_t xs2,
-                                          Double_t xc)
+R3BFrsData* R3BSofFrsAnalysis::AddData(Int_t StaId,
+                                       Int_t StoId,
+                                       Double_t z,
+                                       Double_t aq,
+                                       Double_t beta,
+                                       Double_t brho,
+                                       Double_t xs2,
+                                       Double_t xc)
 {
-    // It fills the R3BSofFrsData
+    // It fills the R3BFrsData
     TClonesArray& clref = *fFrsDataCA;
     Int_t size = clref.GetEntriesFast();
-    return new (clref[size]) R3BSofFrsData(StaId, StoId, z, aq, beta, brho, xs2, xc);
+    return new (clref[size]) R3BFrsData(StaId, StoId, z, aq, beta, brho, xs2, xc);
 }

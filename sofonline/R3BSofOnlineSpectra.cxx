@@ -13,16 +13,24 @@
 #include "R3BCalifaOnlineSpectra.h"
 #include "R3BEventHeader.h"
 #include "R3BMusicOnlineSpectra.h"
+#include "R3BMwpcCorrelationOnlineSpectra.h"
+#include "R3BMwpcOnlineSpectra.h"
 #include "R3BSofAtOnlineSpectra.h"
+#include "R3BSofCorrOnlineSpectra.h"
 #include "R3BSofFrsOnlineSpectra.h"
-#include "R3BSofMwpcCorrelationOnlineSpectra.h"
-#include "R3BSofMwpcOnlineSpectra.h"
 #include "R3BSofScalersOnlineSpectra.h"
 #include "R3BSofSciOnlineSpectra.h"
+#include "R3BSofSciVsMusicOnlineSpectra.h"
+#include "R3BSofSciVsMwpc0OnlineSpectra.h"
+#include "R3BSofSciVsTrimOnlineSpectra.h"
 #include "R3BSofTofWOnlineSpectra.h"
+#include "R3BSofTrackingFissionOnlineSpectra.h"
 #include "R3BSofTrackingOnlineSpectra.h"
 #include "R3BSofTrimOnlineSpectra.h"
-#include "R3BSofTwimOnlineSpectra.h"
+#include "R3BSofTrimVsTofwOnlineSpectra.h"
+#include "R3BSofTwimvsMusicOnlineSpectra.h"
+#include "R3BSofTwimvsTrimOnlineSpectra.h"
+#include "R3BTwimOnlineSpectra.h"
 #include "R3BWRData.h"
 #include "THttpServer.h"
 
@@ -35,8 +43,6 @@
 #include "TFolder.h"
 #include "TH1F.h"
 #include "TH2F.h"
-#include "TLegend.h"
-#include "TLegendEntry.h"
 #include "TVector3.h"
 
 #include "TClonesArray.h"
@@ -67,14 +73,22 @@ R3BSofOnlineSpectra::R3BSofOnlineSpectra()
     , fMwpc3Online(NULL)
     , fTrimOnline(NULL)
     , fTwimOnline(NULL)
+    , fTwimVsMusicOnline(NULL)
+    , fTwimVsTrimOnline(NULL)
     , fSciOnline(NULL)
+    , fSciVsMusOnline(NULL)
+    , fSciVsTrimOnline(NULL)
+    , fSciVsMw0Online(NULL)
     , fTofWOnline(NULL)
+    , fTrimVsTofwOnline(NULL)
     , fScalersOnline(NULL)
     , fMusicOnline(NULL)
     , fAmsOnline(NULL)
     , fCalifaOnline(NULL)
     , fFrsOnline(NULL)
     , fTrackOnline(NULL)
+    , fTrackFFOnline(NULL)
+    , fCorrOnline(NULL)
     , fWRItemsMaster(NULL)
     , fWRItemsSofia(NULL)
     , fWRItemsCalifa(NULL)
@@ -99,14 +113,22 @@ R3BSofOnlineSpectra::R3BSofOnlineSpectra(const TString& name, Int_t iVerbose)
     , fMwpc3Online(NULL)
     , fTrimOnline(NULL)
     , fTwimOnline(NULL)
+    , fTwimVsMusicOnline(NULL)
+    , fTwimVsTrimOnline(NULL)
     , fSciOnline(NULL)
+    , fSciVsMusOnline(NULL)
+    , fSciVsTrimOnline(NULL)
+    , fSciVsMw0Online(NULL)
     , fTofWOnline(NULL)
+    , fTrimVsTofwOnline(NULL)
     , fScalersOnline(NULL)
     , fMusicOnline(NULL)
     , fAmsOnline(NULL)
     , fCalifaOnline(NULL)
     , fFrsOnline(NULL)
     , fTrackOnline(NULL)
+    , fTrackFFOnline(NULL)
+    , fCorrOnline(NULL)
     , fWRItemsMaster(NULL)
     , fWRItemsSofia(NULL)
     , fWRItemsCalifa(NULL)
@@ -119,7 +141,6 @@ R3BSofOnlineSpectra::R3BSofOnlineSpectra(const TString& name, Int_t iVerbose)
 
 R3BSofOnlineSpectra::~R3BSofOnlineSpectra()
 {
-
     LOG(INFO) << "R3BSofOnlineSpectra::Delete instance";
     if (fWRItemsMaster)
         delete fWRItemsMaster;
@@ -137,8 +158,7 @@ R3BSofOnlineSpectra::~R3BSofOnlineSpectra()
 
 InitStatus R3BSofOnlineSpectra::Init()
 {
-
-    LOG(INFO) << "R3BSofOnlineSpectra::Init ";
+    LOG(INFO) << "R3BSofOnlineSpectra::Init()";
 
     // try to get a handle on the EventHeader. EventHeader may not be
     // present though and hence may be null. Take care when using.
@@ -146,7 +166,7 @@ InitStatus R3BSofOnlineSpectra::Init()
     FairRootManager* mgr = FairRootManager::Instance();
     if (NULL == mgr)
         LOG(FATAL) << "R3BSofOnlineSpectra::Init FairRootManager not found";
-    fEventHeader = (R3BEventHeader*)mgr->GetObject("R3BEventHeader");
+    fEventHeader = (R3BEventHeader*)mgr->GetObject("EventHeader.");
 
     FairRunOnline* run = FairRunOnline::Instance();
     if (NULL == run)
@@ -195,58 +215,63 @@ InitStatus R3BSofOnlineSpectra::Init()
         LOG(WARNING) << "R3BSofOnlineSpectra::WRS8Data not found";
     }
 
+    // Looking Correlation of DAQ subsystem online
+    fCorrOnline = (R3BSofCorrOnlineSpectra*)FairRunOnline::Instance()->GetTask("SofCorrOnlineSpectra");
+    if (!fCorrOnline)
+        LOG(WARNING) << "R3BSofOnlineSpectra::SofCorrOnlineSpectra not found";
+
     // Looking for AT online
     fAtOnline = (R3BSofAtOnlineSpectra*)FairRunOnline::Instance()->GetTask("SofAtOnlineSpectra");
     if (!fAtOnline)
         LOG(WARNING) << "R3BSofOnlineSpectra::SofAtOnlineSpectra not found";
 
     // Looking for Mwpc0 online
-    fMwpc0Online = (R3BSofMwpcOnlineSpectra*)FairRunOnline::Instance()->GetTask("SofMwpc0OnlineSpectra");
+    fMwpc0Online = (R3BMwpcOnlineSpectra*)FairRunOnline::Instance()->GetTask("Mwpc0OnlineSpectra");
     if (!fMwpc0Online)
-        LOG(WARNING) << "R3BSofOnlineSpectra::SofMwpc0OnlineSpectra not found";
+        LOG(WARNING) << "R3BSofOnlineSpectra::Mwpc0OnlineSpectra not found";
 
     // Looking for Mwpc0_1 online
     fMwpc01Online =
-        (R3BSofMwpcCorrelationOnlineSpectra*)FairRunOnline::Instance()->GetTask("SofMwpc0_1CorrelationOnlineSpectra");
+        (R3BMwpcCorrelationOnlineSpectra*)FairRunOnline::Instance()->GetTask("Mwpc0_1CorrelationOnlineSpectra");
     if (!fMwpc01Online)
-        LOG(WARNING) << "R3BSofOnlineSpectra::SofMwpc0_1CorrelationOnlineSpectra not found";
+        LOG(WARNING) << "R3BSofOnlineSpectra::Mwpc0_1CorrelationOnlineSpectra not found";
 
     // Looking for Mwpc0_2 online
     fMwpc02Online =
-        (R3BSofMwpcCorrelationOnlineSpectra*)FairRunOnline::Instance()->GetTask("SofMwpc0_2CorrelationOnlineSpectra");
+        (R3BMwpcCorrelationOnlineSpectra*)FairRunOnline::Instance()->GetTask("Mwpc0_2CorrelationOnlineSpectra");
     if (!fMwpc02Online)
-        LOG(WARNING) << "R3BSofOnlineSpectra::SofMwpc0_2CorrelationOnlineSpectra not found";
+        LOG(WARNING) << "R3BSofOnlineSpectra::Mwpc0_2CorrelationOnlineSpectra not found";
 
     // Looking for Mwpc1_2 online
     fMwpc12Online =
-        (R3BSofMwpcCorrelationOnlineSpectra*)FairRunOnline::Instance()->GetTask("SofMwpc1_2CorrelationOnlineSpectra");
+        (R3BMwpcCorrelationOnlineSpectra*)FairRunOnline::Instance()->GetTask("Mwpc1_2CorrelationOnlineSpectra");
     if (!fMwpc12Online)
-        LOG(WARNING) << "R3BSofOnlineSpectra::SofMwpc1_2CorrelationOnlineSpectra not found";
+        LOG(WARNING) << "R3BSofOnlineSpectra::Mwpc1_2CorrelationOnlineSpectra not found";
 
     // Looking for Mwpc2_3 online
     fMwpc23Online =
-        (R3BSofMwpcCorrelationOnlineSpectra*)FairRunOnline::Instance()->GetTask("SofMwpc2_3CorrelationOnlineSpectra");
+        (R3BMwpcCorrelationOnlineSpectra*)FairRunOnline::Instance()->GetTask("Mwpc2_3CorrelationOnlineSpectra");
     if (!fMwpc23Online)
-        LOG(WARNING) << "R3BSofOnlineSpectra::SofMwpc0_1CorrelationOnlineSpectra not found";
+        LOG(WARNING) << "R3BSofOnlineSpectra::Mwpc0_1CorrelationOnlineSpectra not found";
 
     fFrsOnline = (R3BSofFrsOnlineSpectra*)FairRunOnline::Instance()->GetTask("SofFrsOnlineSpectra");
     if (!fFrsOnline)
         LOG(WARNING) << "R3BSofOnlineSpectra::SofFrsOnlineSpectra not found";
 
     // Looking for Mwpc1 online
-    fMwpc1Online = (R3BSofMwpcOnlineSpectra*)FairRunOnline::Instance()->GetTask("SofMwpc1OnlineSpectra");
+    fMwpc1Online = (R3BMwpcOnlineSpectra*)FairRunOnline::Instance()->GetTask("Mwpc1OnlineSpectra");
     if (!fMwpc1Online)
-        LOG(WARNING) << "R3BSofOnlineSpectra::SofMwpc1OnlineSpectra not found";
+        LOG(WARNING) << "R3BSofOnlineSpectra::Mwpc1OnlineSpectra not found";
 
     // Looking for Mwpc2 online
-    fMwpc2Online = (R3BSofMwpcOnlineSpectra*)FairRunOnline::Instance()->GetTask("SofMwpc2OnlineSpectra");
+    fMwpc2Online = (R3BMwpcOnlineSpectra*)FairRunOnline::Instance()->GetTask("Mwpc2OnlineSpectra");
     if (!fMwpc2Online)
-        LOG(WARNING) << "R3BSofOnlineSpectra::SofMwpc2OnlineSpectra not found";
+        LOG(WARNING) << "R3BSofOnlineSpectra::Mwpc2OnlineSpectra not found";
 
     // Looking for Mwpc3 online
-    fMwpc3Online = (R3BSofMwpcOnlineSpectra*)FairRunOnline::Instance()->GetTask("SofMwpc3OnlineSpectra");
+    fMwpc3Online = (R3BMwpcOnlineSpectra*)FairRunOnline::Instance()->GetTask("Mwpc3OnlineSpectra");
     if (!fMwpc3Online)
-        LOG(WARNING) << "R3BSofOnlineSpectra::SofMwpc3OnlineSpectra not found";
+        LOG(WARNING) << "R3BSofOnlineSpectra::Mwpc3OnlineSpectra not found";
 
     // Looking for Trim online
     fTrimOnline = (R3BSofTrimOnlineSpectra*)FairRunOnline::Instance()->GetTask("SofTrimOnlineSpectra");
@@ -254,19 +279,52 @@ InitStatus R3BSofOnlineSpectra::Init()
         LOG(WARNING) << "R3BSofOnlineSpectra::SofTrimOnlineSpectra not found";
 
     // Looking for Twim online
-    fTwimOnline = (R3BSofTwimOnlineSpectra*)FairRunOnline::Instance()->GetTask("SofTwimOnlineSpectra");
+    fTwimOnline = (R3BTwimOnlineSpectra*)FairRunOnline::Instance()->GetTask("TwimOnlineSpectra");
     if (!fTwimOnline)
-        LOG(WARNING) << "R3BSofOnlineSpectra::SofTwimOnlineSpectra not found";
+        LOG(WARNING) << "R3BSofOnlineSpectra::TwimOnlineSpectra not found";
+
+    // Looking for Twim vs Music online
+    fTwimVsMusicOnline =
+        (R3BSofTwimvsMusicOnlineSpectra*)FairRunOnline::Instance()->GetTask("SofTwimvsMusicOnlineSpectra");
+    if (!fTwimVsMusicOnline)
+        LOG(WARNING) << "R3BSofOnlineSpectra::SofTwimvsMusicOnlineSpectra not found";
+
+    // Looking for Twim vs Trim online
+    fTwimVsTrimOnline =
+        (R3BSofTwimvsTrimOnlineSpectra*)FairRunOnline::Instance()->GetTask("SofTwimvsTrimOnlineSpectra");
+    if (!fTwimVsTrimOnline)
+        LOG(WARNING) << "R3BSofOnlineSpectra::SofTwimvsTrimOnlineSpectra not found";
 
     // Looking for Sci online
     fSciOnline = (R3BSofSciOnlineSpectra*)FairRunOnline::Instance()->GetTask("SofSciOnlineSpectra");
     if (!fSciOnline)
         LOG(WARNING) << "R3BSofOnlineSpectra::SofSciOnlineSpectra not found";
 
+    // Looking for Sci Vs R3B_MUSIC online
+    fSciVsMusOnline = (R3BSofSciVsMusicOnlineSpectra*)FairRunOnline::Instance()->GetTask("SofSciVsMusicOnlineSpectra");
+    if (!fSciVsMusOnline)
+        LOG(WARNING) << "R3BSofOnlineSpectra::SofSciVsMusicOnlineSpectra not found";
+
+    // Looking for Sci Vs TRIPLE-MUSIC online
+    fSciVsTrimOnline = (R3BSofSciVsTrimOnlineSpectra*)FairRunOnline::Instance()->GetTask("SofSciVsTrimOnlineSpectra");
+    if (!fSciVsTrimOnline)
+        LOG(WARNING) << "R3BSofOnlineSpectra::SofSciVsTrimOnlineSpectra not found";
+
+    // Looking for Sci Vs MWPC0 online
+    fSciVsMw0Online = (R3BSofSciVsMwpc0OnlineSpectra*)FairRunOnline::Instance()->GetTask("SofSciVsMwpc0OnlineSpectra");
+    if (!fSciVsMw0Online)
+        LOG(WARNING) << "R3BSofOnlineSpectra::SofSciVsMwpc0OnlineSpectra not found";
+
     // Looking for TofW online
     fTofWOnline = (R3BSofTofWOnlineSpectra*)FairRunOnline::Instance()->GetTask("SofTofWOnlineSpectra");
     if (!fTofWOnline)
         LOG(WARNING) << "R3BSofOnlineSpectra::SofTofWOnlineSpectra not found";
+
+    // Looking for Trim vs Tofw online
+    fTrimVsTofwOnline =
+        (R3BSofTrimVsTofwOnlineSpectra*)FairRunOnline::Instance()->GetTask("SofTrimVsTofwOnlineSpectra");
+    if (!fTrimVsTofwOnline)
+        LOG(WARNING) << "R3BSofOnlineSpectra::SofTrimVsTofwOnlineSpectra not found";
 
     // Looking for Scalers online
     fScalersOnline = (R3BSofScalersOnlineSpectra*)FairRunOnline::Instance()->GetTask("SofScalersOnlineSpectra");
@@ -274,9 +332,9 @@ InitStatus R3BSofOnlineSpectra::Init()
         LOG(WARNING) << "R3BSofOnlineSpectra::SofScalersOnlineSpectra not found";
 
     // Looking for Music online
-    fMusicOnline = (R3BMusicOnlineSpectra*)FairRunOnline::Instance()->GetTask("R3BMusicOnlineSpectra");
+    fMusicOnline = (R3BMusicOnlineSpectra*)FairRunOnline::Instance()->GetTask("MusicOnlineSpectra");
     if (!fMusicOnline)
-        LOG(WARNING) << "R3BSofOnlineSpectra::R3BMusicOnlineSpectra not found";
+        LOG(WARNING) << "R3BSofOnlineSpectra::MusicOnlineSpectra not found";
 
     // Looking for AMS online
     fAmsOnline = (R3BAmsOnlineSpectra*)FairRunOnline::Instance()->GetTask("AmsOnlineSpectra");
@@ -292,6 +350,12 @@ InitStatus R3BSofOnlineSpectra::Init()
     fTrackOnline = (R3BSofTrackingOnlineSpectra*)FairRunOnline::Instance()->GetTask("SofTrackingOnlineSpectra");
     if (!fTrackOnline)
         LOG(WARNING) << "R3BSofOnlineSpectra::SofTrackingOnlineSpectra not found";
+
+    // Looking for Fission Tracking online
+    fTrackFFOnline =
+        (R3BSofTrackingFissionOnlineSpectra*)FairRunOnline::Instance()->GetTask("SofTrackingFissionOnlineSpectra");
+    if (!fTrackFFOnline)
+        LOG(WARNING) << "R3BSofOnlineSpectra::SofTrackingFissionOnlineSpectra not found";
 
     // Create histograms for detectors
     char Name1[255];
@@ -316,16 +380,21 @@ InitStatus R3BSofOnlineSpectra::Init()
 
     // Difference between master and sofia WRs
     cWr = new TCanvas("WR_Master_Sofia", "WR_Master_Sofia", 10, 10, 500, 500);
-    fh1_wr = new TH1F("fh1_WR_Master_Sofia", "WR-Master - WR-Sofia", 1200, -4100, 4100);
-    fh1_wr->GetXaxis()->SetTitle("WRs difference");
-    fh1_wr->GetYaxis()->SetTitle("Counts");
-    fh1_wr->GetYaxis()->SetTitleOffset(1.3);
-    fh1_wr->GetXaxis()->CenterTitle(true);
-    fh1_wr->GetYaxis()->CenterTitle(true);
-    fh1_wr->SetFillColor(29);
-    fh1_wr->SetLineColor(1);
-    fh1_wr->SetLineWidth(2);
-    fh1_wr->Draw("");
+    fh1_wr[0] = new TH1F(
+        "fh1_WRSE_Master_Sofia", "WR-Master - WRSE-Sofia(back) , WR-Master - WRME-Sofia(red) ", 1200, -4100, 4100);
+    fh1_wr[0]->GetXaxis()->SetTitle("WRs difference");
+    fh1_wr[0]->GetYaxis()->SetTitle("Counts");
+    fh1_wr[0]->GetYaxis()->SetTitleOffset(1.3);
+    fh1_wr[0]->GetXaxis()->CenterTitle(true);
+    fh1_wr[0]->GetYaxis()->CenterTitle(true);
+    fh1_wr[0]->SetFillColor(29);
+    fh1_wr[0]->SetLineColor(1);
+    fh1_wr[0]->SetLineWidth(2);
+    fh1_wr[0]->Draw("");
+    fh1_wr[1] = new TH1F("fh1_WRME_Master_Sofia", "WR-Master - WRME-Sofia", 1200, -4100, 4100);
+    fh1_wr[1]->SetLineColor(2);
+    fh1_wr[1]->SetLineWidth(2);
+    fh1_wr[1]->Draw("same");
 
     // Difference between Califa-Sofia WRs
     sprintf(Name1, "WRs_Sofia_vs_others");
@@ -428,7 +497,10 @@ void R3BSofOnlineSpectra::Reset_GENERAL_Histo()
     LOG(INFO) << "R3BSofOnlineSpectra::Reset_General_Histo";
     fh1_trigger->Reset();
     if (fWRItemsMaster && fWRItemsSofia)
-        fh1_wr->Reset();
+    {
+        fh1_wr[0]->Reset();
+        fh1_wr[1]->Reset();
+    }
     if (fWRItemsCalifa && fWRItemsSofia)
     {
         fh1_wrs[0]->Reset();
@@ -473,9 +545,27 @@ void R3BSofOnlineSpectra::Reset_GENERAL_Histo()
     // Reset Twim histograms if they exist somewhere
     if (fTwimOnline)
         fTwimOnline->Reset_Histo();
+    // Reset Twim-Trim histograms if they exist somewhere
+    if (fTwimVsTrimOnline)
+        fTwimVsTrimOnline->Reset_Histo();
+    // Reset Twim-Music histograms if they exist somewhere
+    if (fTwimVsMusicOnline)
+        fTwimVsMusicOnline->Reset_Histo();
     // Reset Sci histograms if they exist somewhere
     if (fSciOnline)
         fSciOnline->Reset_Histo();
+    // Reset Sci vs R3B_MUSIC histograms if they exist somewhere
+    if (fSciVsMusOnline)
+        fSciVsMusOnline->Reset_Histo();
+    // Reset Sci vs TRIPLE-MUSIC histograms if they exist somewhere
+    if (fSciVsTrimOnline)
+        fSciVsTrimOnline->Reset_Histo();
+    // Reset Sci vs MWPC0 histograms if they exist somewhere
+    if (fSciVsMw0Online)
+        fSciVsMw0Online->Reset_Histo();
+    // Reset Trim vs Tofw histograms if they exist somewhere
+    if (fTrimVsTofwOnline)
+        fTrimVsTofwOnline->Reset_Histo();
     // Reset Scalers histograms if they exist somewhere
     if (fScalersOnline)
         fScalersOnline->Reset_Histo();
@@ -497,6 +587,12 @@ void R3BSofOnlineSpectra::Reset_GENERAL_Histo()
     // Reset Tracking histograms if they exist somewhere
     if (fTrackOnline)
         fTrackOnline->Reset_Histo();
+    // Reset Fission Tracking histograms if they exist somewhere
+    if (fTrackFFOnline)
+        fTrackFFOnline->Reset_Histo();
+    // Reset Corr histograms if they exist somewhere
+    if (fCorrOnline)
+        fCorrOnline->Reset_Histo();
 }
 
 void R3BSofOnlineSpectra::Exec(Option_t* option)
@@ -532,13 +628,13 @@ void R3BSofOnlineSpectra::Exec(Option_t* option)
     {
         // SOFIA
         Int_t nHits = fWRItemsSofia->GetEntriesFast();
-        int64_t wrs = 0.;
+        int64_t wrs[2];
         for (Int_t ihit = 0; ihit < nHits; ihit++)
         {
             R3BWRData* hit = (R3BWRData*)fWRItemsSofia->At(ihit);
             if (!hit)
                 continue;
-            wrs = hit->GetTimeStamp();
+            wrs[ihit] = hit->GetTimeStamp();
         }
 
         // Califa
@@ -553,8 +649,8 @@ void R3BSofOnlineSpectra::Exec(Option_t* option)
                     continue;
                 wr[ihit] = hit->GetTimeStamp();
             }
-            fh1_wrs[0]->Fill(wrs - wr[0]); // messel
-            fh1_wrs[1]->Fill(wrs - wr[1]); // wixhausen
+            fh1_wrs[0]->Fill(wrs[0] - wr[0]); // messel
+            fh1_wrs[1]->Fill(wrs[0] - wr[1]); // wixhausen
         }
         // Neuland
         if (fWRItemsNeuland && fWRItemsNeuland->GetEntriesFast() > 0)
@@ -565,7 +661,7 @@ void R3BSofOnlineSpectra::Exec(Option_t* option)
                 R3BWRData* hit = (R3BWRData*)fWRItemsNeuland->At(ihit);
                 if (!hit)
                     continue;
-                fh1_wrs[2]->Fill(int64_t(wrs - hit->GetTimeStamp()));
+                fh1_wrs[2]->Fill(int64_t(wrs[0] - hit->GetTimeStamp()));
             }
             // fh1_wrs[4]->GetMaximum();
             fh1_wrs[0]->SetMaximum(5. * fh1_wrs[2]->GetBinContent(fh1_wrs[2]->GetMaximumBin()));
@@ -579,7 +675,7 @@ void R3BSofOnlineSpectra::Exec(Option_t* option)
                 R3BWRData* hit = (R3BWRData*)fWRItemsS2->At(ihit);
                 if (!hit)
                     continue;
-                fh1_wrs[3]->Fill(int64_t(wrs - hit->GetTimeStamp()));
+                fh1_wrs[3]->Fill(int64_t(wrs[0] - hit->GetTimeStamp()));
             }
         }
         // S8
@@ -591,7 +687,7 @@ void R3BSofOnlineSpectra::Exec(Option_t* option)
                 R3BWRData* hit = (R3BWRData*)fWRItemsS8->At(ihit);
                 if (!hit)
                     continue;
-                fh1_wrs[4]->Fill(int64_t(wrs - hit->GetTimeStamp()));
+                fh1_wrs[4]->Fill(int64_t(wrs[0] - hit->GetTimeStamp()));
             }
         }
         // Master
@@ -606,10 +702,12 @@ void R3BSofOnlineSpectra::Exec(Option_t* option)
                     continue;
                 wrm = hit->GetTimeStamp();
             }
-            fh1_wr->Fill(wrm - wrs);
+            fh1_wr[0]->Fill(wrm - wrs[0]);
+            fh1_wr[1]->Fill(wrm - wrs[1]);
         }
     }
     fNEvents += 1;
+    return;
 }
 
 void R3BSofOnlineSpectra::FinishEvent()

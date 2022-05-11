@@ -99,16 +99,17 @@ class R3BAmsCorrelationOnlineSpectra : public FairTask
     TClonesArray* fHitItemsTwim;   /**< Array with twim-hit items. */
     TClonesArray* fHitItemsMus;    /**< Array with music-hit items. */
     TClonesArray* fHitItemsCalifa; /**< Array with califa-hit items. */
+    TClonesArray* fHitItemsTrim;   /**< Array with triple music-hit items. */
 
     Int_t fHitCalifaHist_max;
     Int_t fHitCalifaHist_bins;
 
     // check for trigger should be done globablly (somewhere else)
-    R3BEventHeader* header; /**< Event header. */
-    Int_t fTrigger;         /**< Trigger value. */
-    Int_t fNEvents;         /**< Event counter. */
-    Float_t fZproj;         // Atomic number of projectile
-    Float_t fMinProtonE;    /**< Min proton energy (in keV) to calculate the opening angle */
+    R3BEventHeader* fEventHeader; /**< Event header.      */
+    Int_t fTrigger;               /**< Trigger value. */
+    Int_t fNEvents;               /**< Event counter. */
+    Float_t fZproj;               // Atomic number of projectile
+    Float_t fMinProtonE;          /**< Min proton energy (in keV) to calculate the opening angle */
 
     TCanvas* cHit[6];
     TCanvas* cHitAngles;
